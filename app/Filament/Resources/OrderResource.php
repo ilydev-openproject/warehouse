@@ -1,0 +1,337 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use Closure;
+use Filament\Forms;
+use Filament\Tables;
+use App\Models\Gudang;
+use App\Models\Orders;
+use App\Models\Product;
+use App\Models\Platform;
+use Filament\Forms\Form;
+use App\Models\OrderItem;
+use Filament\Tables\Table;
+use Filament\Actions\Action;
+use App\Models\WarehouseStock;
+use Filament\Infolists\Infolist;
+use Filament\Resources\Resource;
+use Illuminate\Support\Facades\DB;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Repeater;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Columns\SelectColumn;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\TextEntry;
+use App\Filament\Resources\OrderResource\Pages;
+use Filament\Infolists\Components\RepeatableEntry;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\OrderResource\RelationManagers;
+use Filament\Infolists\Columns\TextColumn as InfoTextColumn;
+
+class OrderResource extends Resource
+{
+    protected static ?string $model = Orders::class;
+
+    protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
+
+    protected static ?string $navigationGroup = 'Sale';
+
+    protected static ?int $navigationSort = 0;
+
+    protected static ?string $modelLabel = 'Pesanan';
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                TextInput::make('resi')
+                    ->label('Masukkan Nomor Resi')
+                    ->unique(ignorable: fn($record) => $record)
+                    ->required()
+                    ->validationMessages([
+                        'required' => 'Tidak Boleh Kosong',
+                        'unique' => 'Resi sudah ada di database',
+                    ]),
+                TextInput::make('customer_name')
+                    ->label('Nama Customer')
+                    ->required()
+                    ->validationMessages([
+                        'required' => 'Tidak Boleh Kosong'
+                    ]),
+                TextInput::make('alamat')
+                    ->label('Alamat')
+                    ->required()
+                    ->validationMessages([
+                        'required' => 'Tidak Boleh Kosong'
+                    ]),
+                Select::make('id_platform')
+                    ->options(Platform::query()->pluck('name', 'id'))
+                    ->label('Pilih Platform')
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->validationMessages([
+                        'required' => 'Tidak Boleh Kosong'
+                    ]),
+                // Perhitungan keuangan
+                TextInput::make('gross_amount')
+                    ->label('Gross Amount')
+                    ->numeric()
+                    ->required()
+                    ->dehydrated()
+                    ->validationMessages([
+                        'required' => 'Tidak Boleh Kosong'
+                    ]),
+
+                TextInput::make('shipping_cost')
+                    ->label('Biaya Kirim')
+                    ->numeric()
+                    ->default(0)
+                    ->minValue(0)
+                    ->required()
+                    ->reactive(),
+
+                TextInput::make('net_amount')
+                    ->label('Net Amount')
+                    ->numeric()
+                    ->disabled()
+                    ->dehydrated(),
+                Repeater::make('order_items')
+                    ->label('Produk Pesanan')
+                    ->relationship()
+                    ->schema([
+                        Select::make('fulfillment_type')
+                            ->label('Sumber Pengiriman')
+                            ->options([
+                                'warehouse' => 'Gudang',
+                                'dropship' => 'Dropship'
+                            ])
+                            ->required()
+                            ->searchable()
+                            ->live()
+                            ->afterStateUpdated(function ($state, $set) {
+                                $set('id_gudang', $state === 'warehouse' ? null : null);
+                            }),
+
+                        Select::make('id_gudang')
+                            ->label('Gudang')
+                            ->options(Gudang::query()->pluck('name', 'id'))
+                            ->searchable()
+                            ->required(fn($get) => $get('fulfillment_type') === 'warehouse')
+                            ->hidden(fn($get) => $get('fulfillment_type') !== 'warehouse'),
+
+                        Select::make('id_product')
+                            ->label('Produk')
+                            ->options(function (callable $get) {
+                                $gudangId = $get('id_gudang');
+                                $fulfillmentType = $get('fulfillment_type');
+
+                                // Cek jika fulfillment_type adalah 'warehouse'
+                                if ($fulfillmentType === 'warehouse' && $gudangId) {
+                                    // Tampilkan produk yang memiliki stok di gudang yang dipilih
+                                    return \App\Models\Product::all()->mapWithKeys(function ($product) use ($gudangId) {
+                                        $stock = \App\Models\WarehouseStock::where('id_product', $product->id)
+                                            ->where('id_gudang', $gudangId)
+                                            ->sum('quantity');
+                                        return [$product->id => $product->name . ' (' . $stock . ' stok)'];
+                                    });
+                                }
+
+                                // Jika fulfillment_type adalah 'dropship', tampilkan semua produk tanpa filter stok
+                                return \App\Models\Product::all()->mapWithKeys(function ($product) {
+                                    return [$product->id => $product->name];
+                                });
+                            })
+                            ->searchable()
+                            ->required()
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                $gudangId = $get('id_gudang');
+                                $fulfillmentType = $get('fulfillment_type');
+
+                                // Jika fulfillment_type adalah 'warehouse', update stok produk
+                                if ($fulfillmentType === 'warehouse' && $gudangId) {
+                                    $stok = \App\Models\WarehouseStock::where('id_product', $state)
+                                        ->where('id_gudang', $gudangId)
+                                        ->sum('quantity');
+                                    $set('current_stock', $stok);
+                                } else {
+                                    $set('current_stock', null); // Jika dropship, set stok null
+                                }
+                            }),
+
+                        TextInput::make('quantity')
+                            ->label('Jumlah')
+                            ->numeric()
+                            ->default(1)
+                            ->required()
+                            ->minValue(1)
+                            ->live()
+                            ->rules([
+                                function (callable $get) {
+                                    return function (string $attribute, $value, \Closure $fail) use ($get) {
+                                        $productId = $get('id_product');
+                                        $gudangId = $get('id_gudang');
+                                        $fulfillmentType = $get('fulfillment_type');
+
+                                        if ($productId && $gudangId && $fulfillmentType === 'warehouse') {
+                                            $stok = \App\Models\WarehouseStock::where('id_product', $productId)
+                                                ->where('id_gudang', $gudangId)
+                                                ->sum('quantity');
+
+                                            if ($value > $stok) {
+                                                $fail("Jumlah melebihi stok gudang ($stok)");
+                                            }
+                                        }
+                                    };
+                                },
+                            ])
+                            ->validationMessages([
+                                'required' => 'Jumlah produk harus diisi.',
+                                'numeric' => 'Jumlah harus berupa angka.',
+                            ]),
+
+                    ])
+                    ->columns(3)
+                    ->columnSpanFull()
+                    ->required()
+
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('updated_at')->formatStateUsing(fn($state) => date('d F Y', strtotime($state))),
+                TextColumn::make('resi')
+                    ->searchable(),
+                TextColumn::make('customer_name'),
+                TextColumn::make('alamat'),
+                TextColumn::make('platform.name'),
+                TextColumn::make('gross_amount')
+                    ->money('idr')
+                    ->label('Omset Kotor'),
+                TextColumn::make('shipping_cost')
+                    ->money('idr')
+                    ->label('Biaya Kirim'),
+                TextColumn::make('net_amoung')
+                    ->money('idr')
+                    ->label('Omset Bersih'),
+                TextColumn::make('status')
+                    ->color(fn(string $state): string => match ($state) {
+                        'returned' => 'gray',
+                        'process' => 'warning',
+                        'shipped' => 'success',
+                        'lost' => 'danger',
+                    })
+                    ->icon(fn(string $state): string => match ($state) {
+                        'returned' => 'heroicon-o-arrow-path',
+                        'process' => 'heroicon-o-truck',
+                        'shipped' => 'heroicon-o-check-circle',
+                        'lost' => 'heroicon-o-trash',
+                    })
+                    ->formatStateUsing(fn($state) => ucwords($state))
+                    ->badge(),
+            ])
+            ->filters([
+                //
+            ])
+            ->actions([
+                ActionGroup::make([
+                    Tables\Actions\ViewAction::make()
+                        ->label('Lihat Produk')
+                        ->color('primary')
+                        ->icon('heroicon-o-shopping-bag'),
+                    Tables\Actions\EditAction::make(),
+                    DeleteAction::make()
+                        ->action(function (Orders $record) {
+                            DB::transaction(function () use ($record) {
+                                foreach ($record->order_items as $item) {
+                                    if ($item->fulfillment_type === 'warehouse') {
+                                        WarehouseStock::where('id_product', $item->id_product)
+                                            ->where('id_gudang', $item->id_gudang)
+                                            ->increment('quantity', $item->quantity);
+                                    }
+
+                                    // Hapus itemnya
+                                    $item->delete();
+                                }
+
+                                // Terakhir hapus ordernya
+                                $record->delete();
+                            });
+
+                            Notification::make()
+                                ->success()
+                                ->title('Pesanan berhasil dihapus dan stok dikembalikan.')
+                                ->send();
+                        })
+                        ->requiresConfirmation()
+                        ->modalHeading('Hapus Pesanan')
+                        ->modalDescription('Semua item dan stoknya akan dikembalikan. Yakin ingin hapus?')
+                ]),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListOrders::route('/'),
+            'create' => Pages\CreateOrder::route('/create'),
+            'edit' => Pages\EditOrder::route('/{record}/edit'),
+        ];
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                RepeatableEntry::make('order_items')
+                    ->schema([
+                        // Kolom untuk setiap item produk
+                        TextEntry::make('product.name')
+                            ->label('Nama Produk')
+                            ->weight('bold'),
+
+                        TextEntry::make('quantity')
+                            ->label('Jumlah')
+                            ->formatStateUsing(fn($state) => "{$state} pcs"),
+                        TextEntry::make('fulfillment_type')
+                            ->label('Asal')
+                            ->badge()
+                            ->color(fn(string $state): string => match ($state) {
+                                'warehouse' => 'info',
+                                'dropship' => 'success',
+                                default => 'gray',
+                            })
+                            ->formatStateUsing(fn(string $state): string => match ($state) {
+                                'warehouse' => 'Gudang',
+                                'dropship' => 'Dropship',
+                            }),
+                        TextEntry::make('gudang.name')
+                    ])
+                    ->columnSpanFull()
+                    ->columns(4)
+                    ->grid(1)
+            ]);
+    }
+}
