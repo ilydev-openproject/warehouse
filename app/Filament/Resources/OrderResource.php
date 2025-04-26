@@ -15,10 +15,12 @@ use Filament\Tables\Table;
 use App\Models\WarehouseStock;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Filament\Tables\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Repeater;
+use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -210,21 +212,27 @@ class OrderResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('updated_at')->formatStateUsing(fn($state) => date('d F Y', strtotime($state))),
+                TextColumn::make('updated_at')->formatStateUsing(fn($state) => date('d F Y', strtotime($state)))
+                    ->sortable(),
                 TextColumn::make('resi')
                     ->searchable(),
-                TextColumn::make('customer_name'),
-                TextColumn::make('alamat'),
+                TextColumn::make('customer_name')
+                    ->limit(10),
+                TextColumn::make('alamat')
+                    ->limit(12),
                 TextColumn::make('platform.name'),
                 TextColumn::make('gross_amount')
                     ->money('idr')
                     ->label('Omset Kotor'),
-                TextColumn::make('shipping_cost')
-                    ->money('idr')
-                    ->label('Biaya Kirim'),
+                // TextColumn::make('shipping_cost')
+                //     ->money('idr')
+                //     ->label('Biaya Kirim'),
                 TextInputColumn::make('net_amount')
                     ->label('Omset Bersih')
-                    ->disabled(fn($record) => $record->status !== 'shipped'),
+                    ->disabled(fn($record) => $record->status !== 'shipped')
+                    ->extraAttributes([
+                        'style' => 'width: 100px; min-width: 100px;', // atau '10%' jika pakai persentase
+                    ]),
                 TextColumn::make('status')
                     ->color(fn(string $state): string => match ($state) {
                         'returned' => 'gray',
@@ -250,16 +258,16 @@ class OrderResource extends Resource
                         ->label('Ubah Status')
                         ->icon('heroicon-o-cog-6-tooth')
                         ->color('warning')
-                        ->form([
+                        ->form(fn(Orders $record) => [
                             Select::make('status')
                                 ->label('Status Baru')
                                 ->searchable()
-                                ->options([
+                                ->options(collect([
                                     'process' => 'Proses',
                                     'shipped' => 'Terkirim',
                                     'returned' => 'Retur',
                                     'lost' => 'Hilang',
-                                ])
+                                ])->except($record->status))
                                 ->required(),
                         ])
                         ->action(function (array $data, Orders $record) {
@@ -303,9 +311,34 @@ class OrderResource extends Resource
                 ]),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                BulkAction::make('hapus-pesanan')
+                    ->label('Hapus Pesanan')
+                    ->icon('heroicon-o-trash')
+                    ->requiresConfirmation()
+                    ->modalHeading('Hapus Pesanan')
+                    ->modalDescription('Semua item dan stoknya akan dikembalikan. Yakin ingin hapus?')
+                    ->action(function (Collection $records) {
+                        DB::transaction(function () use ($records) {
+                            foreach ($records as $record) {
+                                foreach ($record->order_items as $item) {
+                                    if ($item->fulfillment_type === 'warehouse') {
+                                        WarehouseStock::where('id_product', $item->id_product)
+                                            ->where('id_gudang', $item->id_gudang)
+                                            ->increment('quantity', $item->quantity);
+                                    }
+
+                                    $item->delete();
+                                }
+
+                                $record->delete();
+                            }
+                        });
+
+                        Notification::make()
+                            ->success()
+                            ->title('Pesanan berhasil dihapus dan stok dikembalikan.')
+                            ->send();
+                    }),
             ]);
     }
 
