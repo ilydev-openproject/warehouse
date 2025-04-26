@@ -12,11 +12,11 @@ use App\Models\Platform;
 use Filament\Forms\Form;
 use App\Models\OrderItem;
 use Filament\Tables\Table;
-use Filament\Actions\Action;
 use App\Models\WarehouseStock;
 use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Illuminate\Support\Facades\DB;
+use Filament\Tables\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Repeater;
 use Filament\Tables\Columns\TextColumn;
@@ -28,6 +28,7 @@ use Filament\Tables\Columns\SelectColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Tables\Columns\TextInputColumn;
 use App\Filament\Resources\OrderResource\Pages;
 use Filament\Infolists\Components\RepeatableEntry;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -221,9 +222,9 @@ class OrderResource extends Resource
                 TextColumn::make('shipping_cost')
                     ->money('idr')
                     ->label('Biaya Kirim'),
-                TextColumn::make('net_amoung')
-                    ->money('idr')
-                    ->label('Omset Bersih'),
+                TextInputColumn::make('net_amount')
+                    ->label('Omset Bersih')
+                    ->disabled(fn($record) => $record->status !== 'shipped'),
                 TextColumn::make('status')
                     ->color(fn(string $state): string => match ($state) {
                         'returned' => 'gray',
@@ -245,6 +246,29 @@ class OrderResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
+                    Action::make('ubahStatus')
+                        ->label('Ubah Status')
+                        ->icon('heroicon-o-cog-6-tooth')
+                        ->color('warning')
+                        ->form([
+                            Select::make('status')
+                                ->label('Status Baru')
+                                ->searchable()
+                                ->options([
+                                    'process' => 'Proses',
+                                    'shipped' => 'Terkirim',
+                                    'returned' => 'Retur',
+                                    'lost' => 'Hilang',
+                                ])
+                                ->required(),
+                        ])
+                        ->action(function (array $data, Orders $record) {
+                            // Update status sesuai pilihan dari form
+                            $record->status = $data['status'];
+                            $record->save();
+                        })
+                        ->requiresConfirmation()
+                        ->modalHeading('Ubah Status Pesanan'),
                     Tables\Actions\ViewAction::make()
                         ->label('Lihat Produk')
                         ->color('primary')
