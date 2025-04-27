@@ -10,4 +10,9 @@ class Platform extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public function order()
+    {
+        return $this->hasMany(Orders::class, 'id_platform');
+    }
 }

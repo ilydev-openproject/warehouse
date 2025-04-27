@@ -5,15 +5,26 @@ namespace App\Filament\Resources\OrderResource\Pages;
 use Filament\Actions;
 use App\Imports\OrdersImport;
 use Maatwebsite\Excel\Facades\Excel;
+use Filament\Resources\Components\Tab;
 use Illuminate\Support\Facades\Storage;
 use Filament\Notifications\Notification;
 use App\Filament\Resources\OrderResource;
 use Filament\Forms\Components\FileUpload;
+use Filament\Pages\Concerns\ExposesTableToWidgets;
 use Filament\Resources\Pages\ListRecords;
 
 class ListOrders extends ListRecords
 {
     protected static string $resource = OrderResource::class;
+
+    use ExposesTableToWidgets;
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            OrderResource\Widgets\OrderStats::class,
+        ];
+    }
 
     protected function getHeaderActions(): array
     {
@@ -50,6 +61,17 @@ class ListOrders extends ListRecords
                 })
                 ->modalHeading('Import Data Order')
                 ->modalSubmitActionLabel('Import'),
+        ];
+    }
+
+    public function getTabs(): array
+    {
+        return [
+            null => Tab::make('All'),
+            'proses' => Tab::make()->query(fn($query) => $query->where('status', 'process')),
+            'shipped' => Tab::make()->query(fn($query) => $query->where('status', 'shipped')),
+            'retur' => Tab::make()->query(fn($query) => $query->where('status', 'return')),
+            'hilang' => Tab::make()->query(fn($query) => $query->where('status', 'lost')),
         ];
     }
 }

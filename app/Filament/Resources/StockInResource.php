@@ -10,6 +10,7 @@ use App\Models\StockIn;
 use Filament\Forms\Set;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Illuminate\Support\Str;
 use Filament\Actions\Action;
 use App\Models\WarehouseStock;
 use Filament\Resources\Resource;
@@ -21,6 +22,8 @@ use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\StockInResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\StockInResource\RelationManagers;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Section;
 
 class StockInResource extends Resource
 {
@@ -40,50 +43,73 @@ class StockInResource extends Resource
     {
         return $form
             ->schema([
-                Select::make('id_product')
-                    ->options(Product::query()->pluck('name', 'id'))
-                    ->searchable()
-                    ->disabled(fn($operation) => $operation === 'edit')
-                    ->preload()
-                    ->label('Pilih Produk')
-                    ->required(),
-                TextInput::make('quantity')
-                    ->numeric()
-                    ->label('Qty')
-                    ->required()
-                    ->live() // Memperbarui nilai secara real-time
-                    ->afterStateUpdated(function ($state, Set $set, $get) {
-                        $set('total_harga', $state * $get('harga'));
-                    }),
-                TextInput::make('harga')
-                    ->label('Harga')
-                    ->numeric()
-                    ->required()
-                    ->live()
-                    ->afterStateUpdated(function ($state, Set $set, $get) {
-                        $set('total_harga', $get('quantity') * $state);
-                    }),
-                TextInput::make('total_harga')
-                    ->label('Total Harga')
-                    ->disabled()
-                    ->numeric()
-                    ->dehydrated(),
-                Select::make('id_gudang')
-                    ->label('Pilih Gudang')
-                    ->options(Gudang::query()->pluck('name', 'id'))
-                    ->searchable()
-                    ->preload()
-                    ->disabled(fn($operation) => $operation === 'edit')
-                    ->required(),
-                Select::make('keterangan')
-                    ->label('Keterangan')
-                    ->options([
-                        'Kulakan' => 'Kulakan',
-                        'Retur' => 'Retur'
+                Section::make('Stock Masuk')
+                    ->schema([
+                        Repeater::make('')
+                            ->relationship()
+                            ->schema([
+                                Select::make('id_product')
+                                    ->options(Product::query()->pluck('name', 'id'))
+                                    ->searchable()
+                                    ->disabled(fn($operation) => $operation === 'edit')
+                                    ->preload()
+                                    ->label('Pilih Produk')
+                                    ->required()
+                                    ->createOptionForm([ // Form untuk membuat produk baru
+                                        TextInput::make('name')
+                                            ->label('Nama Produk')
+                                            ->required(),
+                                    ])
+                                    ->createOptionUsing(function (array $data) {
+                                        // Simpan produk baru
+                                        $product = Product::create([
+                                            'name' => $data['name'],
+                                        ]);
+
+                                        return $product->id;
+                                    }),
+                                TextInput::make('quantity')
+                                    ->numeric()
+                                    ->label('Qty')
+                                    ->required()
+                                    ->live() // Memperbarui nilai secara real-time
+                                    ->afterStateUpdated(function ($state, Set $set, $get) {
+                                        $set('total_harga', $state * $get('harga'));
+                                    }),
+                                TextInput::make('harga')
+                                    ->label('Harga')
+                                    ->numeric()
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Set $set, $get) {
+                                        $set('total_harga', $get('quantity') * $state);
+                                    }),
+                                TextInput::make('total_harga')
+                                    ->label('Total Harga')
+                                    ->disabled()
+                                    ->numeric()
+                                    ->dehydrated(),
+                                Select::make('id_gudang')
+                                    ->label('Pilih Gudang')
+                                    ->options(Gudang::query()->pluck('name', 'id'))
+                                    ->searchable()
+                                    ->preload()
+                                    ->disabled(fn($operation) => $operation === 'edit')
+                                    ->required(),
+                                Select::make('keterangan')
+                                    ->label('Keterangan')
+                                    ->options([
+                                        'Kulakan' => 'Kulakan',
+                                        'Retur' => 'Retur'
+                                    ])
+                                    ->searchable()
+                                    ->preload()
+                                    ->required()
+                            ])
+                            ->columns(3)
+                            ->orderColumn('sort')
+                            ->defaultItems(1)
                     ])
-                    ->searchable()
-                    ->preload()
-                    ->required()
             ]);
     }
 

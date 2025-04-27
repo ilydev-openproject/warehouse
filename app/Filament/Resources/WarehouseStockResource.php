@@ -44,11 +44,18 @@ class WarehouseStockResource extends Resource
                     ->searchable(),
                 TextColumn::make('gudang.name'),
                 TextColumn::make('quantity')
+                    ->label('Qty')
                     ->color(function ($state) {
-                        return $state < 5 ? 'danger' : 'success'; // Merah jika <5, hijau jika >=5
+                        return $state < 5 ? 'danger' : 'success';
                     })
-                    ->formatStateUsing(fn($state) => $state . ' pcs') // imbuhi text di belakang angka
+                    ->formatStateUsing(fn($state) => $state . ' pcs')
+                    ->sortable()
                     ->badge(),
+                TextColumn::make('keterangan')
+                    ->label('Keterangan')
+                    ->searchable()
+                    ->state(fn($record) => $record->quantity < 5 ? 'Restok' : 'Stok Aman')
+                    ->color(fn($record) => $record->quantity < 5 ? 'danger' : 'success'),
             ])
             ->filters([
                 //

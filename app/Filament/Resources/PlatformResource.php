@@ -40,13 +40,14 @@ class PlatformResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label('Nama Platform')
+                    ->label('Nama Platform'),
             ])
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
