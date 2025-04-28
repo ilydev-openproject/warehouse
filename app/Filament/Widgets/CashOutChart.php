@@ -15,7 +15,7 @@ class CashOutChart extends ChartWidget
 
     protected function getData(): array
     {
-        $filters = $this->filters;
+        $filters = method_exists($this, 'filters') ? $this->filters : [];
 
         $startDate = !is_null($filters['startDate'] ?? null)
             ? Carbon::parse($filters['startDate'])

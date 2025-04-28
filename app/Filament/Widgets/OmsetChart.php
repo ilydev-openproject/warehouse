@@ -15,11 +15,15 @@ class OmsetChart extends ChartWidget
 
     protected function getData(): array
     {
-        $filters = $this->filters;
+        $filters = method_exists($this, 'filters') ? $this->filters : [];
 
-        $startDate = Carbon::parse($this->filters['startDate'] ?? now()->subDays(6));
-        $endDate = Carbon::parse($this->filters['endDate'] ?? now());
+        $startDate = !is_null($filters['startDate'] ?? null)
+            ? Carbon::parse($filters['startDate'])
+            : now()->subDays(6);
 
+        $endDate = !is_null($filters['endDate'] ?? null)
+            ? Carbon::parse($filters['endDate'])
+            : now();
 
         $labels = [];
         $data = [];
