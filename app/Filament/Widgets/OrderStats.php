@@ -6,7 +6,6 @@ use Carbon\Carbon;
 use App\Models\Orders;
 use App\Models\StockIn;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
-use Filament\Widgets\StatsOverviewWidget\Card;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 
