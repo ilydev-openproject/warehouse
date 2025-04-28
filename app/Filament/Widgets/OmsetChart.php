@@ -17,13 +17,9 @@ class OmsetChart extends ChartWidget
     {
         $filters = $this->filters;
 
-        $startDate = !is_null($filters['startDate'] ?? null)
-            ? Carbon::parse($filters['startDate'])
-            : now()->subDays(6);
+        $startDate = Carbon::parse($this->filters['startDate'] ?? now()->subDays(6));
+        $endDate = Carbon::parse($this->filters['endDate'] ?? now());
 
-        $endDate = !is_null($filters['endDate'] ?? null)
-            ? Carbon::parse($filters['endDate'])
-            : now();
 
         $labels = [];
         $data = [];
