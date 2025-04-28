@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\CashOutChart;
+use App\Filament\Widgets\OmsetChart;
 use Filament\Forms\Get;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
@@ -24,6 +26,8 @@ class Dashboard extends BaseDashboard
             \Filament\Widgets\AccountWidget::class,
             FilamentInfoWidget::class,
             OrderStats::class, // <- Taruh widget kamu di sini
+            OmsetChart::class, // <- Taruh widget kamu di sini
+            CashOutChart::class, // <- Taruh widget kamu di sini
         ];
     }
 
