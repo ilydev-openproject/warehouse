@@ -45,8 +45,8 @@ class CashOutChart extends ChartWidget
                 [
                     'label' => 'Pengeluaran',
                     'data' => $data,
-                    'borderColor' => '#FF0084',
-                    'backgroundColor' => '#FF0084',
+                    'borderColor' => '#f87171',
+                    'backgroundColor' => '#f87171',
                 ],
             ],
             'labels' => $labels,

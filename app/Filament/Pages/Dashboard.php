@@ -26,7 +26,7 @@ class Dashboard extends BaseDashboard
             \Filament\Widgets\AccountWidget::class,
             FilamentInfoWidget::class,
             OrderStats::class,
-            // OmsetChart::class,
+            OmsetChart::class,
             CashOutChart::class,
         ];
     }
