@@ -2,15 +2,12 @@
 
 namespace App\Filament\Resources;
 
-use Closure;
 use Filament\Forms;
 use Filament\Tables;
 use App\Models\Gudang;
 use App\Models\Orders;
-use App\Models\Product;
 use App\Models\Platform;
 use Filament\Forms\Form;
-use App\Models\OrderItem;
 use Filament\Tables\Table;
 use App\Models\WarehouseStock;
 use Illuminate\Support\Carbon;
@@ -20,7 +17,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Filament\Tables\Actions\Action;
 use Filament\Forms\Components\Select;
-use App\Filament\Widgets\StatsOverview;
 use Filament\Forms\Components\Repeater;
 use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Columns\TextColumn;
@@ -28,10 +24,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Columns\SelectColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
-use Filament\Infolists\Components\Section;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Tables\Columns\TextInputColumn;
 use Filament\Tables\Actions\DeleteBulkAction;
@@ -39,11 +32,8 @@ use App\Filament\Resources\OrderResource\Pages;
 use Filament\Infolists\Components\RepeatableEntry;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Section as SectionLay;
-use App\Filament\Resources\OrderResource\RelationManagers;
-use App\Filament\Resources\OrderResource\Widgets\OrderStats;
 use Filament\Forms\Components\Group;
 use Filament\Forms\Components\ToggleButtons;
-use Filament\Infolists\Columns\TextColumn as InfoTextColumn;
 
 class OrderResource extends Resource
 {
