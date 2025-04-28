@@ -20,12 +20,14 @@ class OrderStats extends BaseWidget
         $query = Orders::query();
         $stock_in = StockIn::query();
 
-        $startDate = !is_null($this->filters['startDate'] ?? null)
-            ? Carbon::parse($this->filters['startDate'])
+        $filters = method_exists($this, 'filters') ? $this->filters : [];
+
+        $startDate = !is_null($filters['startDate'] ?? null)
+            ? Carbon::parse($filters['startDate'])
             : null;
 
-        $endDate = !is_null($this->filters['endDate'] ?? null)
-            ? Carbon::parse($this->filters['endDate'])
+        $endDate = !is_null($filters['endDate'] ?? null)
+            ? Carbon::parse($filters['endDate'])
             : now();
 
         if ($startDate) {
