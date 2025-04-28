@@ -23,10 +23,10 @@ class Dashboard extends BaseDashboard
     public function getWidgets(): array
     {
         return [
-            \Filament\Widgets\AccountWidget::class,
-            FilamentInfoWidget::class,
-            OrderStats::class,
-            OmsetChart::class,
+            // \Filament\Widgets\AccountWidget::class,
+            // FilamentInfoWidget::class,
+            // OrderStats::class,
+            // OmsetChart::class,
             CashOutChart::class,
         ];
     }
