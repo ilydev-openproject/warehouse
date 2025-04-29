@@ -45,71 +45,64 @@ class StockInResource extends Resource
             ->schema([
                 Section::make('Stock Masuk')
                     ->schema([
-                        Repeater::make('')
-                            ->relationship()
-                            ->schema([
-                                Select::make('id_product')
-                                    ->options(Product::query()->pluck('name', 'id'))
-                                    ->searchable()
-                                    ->disabled(fn($operation) => $operation === 'edit')
-                                    ->preload()
-                                    ->label('Pilih Produk')
-                                    ->required()
-                                    ->createOptionForm([ // Form untuk membuat produk baru
-                                        TextInput::make('name')
-                                            ->label('Nama Produk')
-                                            ->required(),
-                                    ])
-                                    ->createOptionUsing(function (array $data) {
-                                        // Simpan produk baru
-                                        $product = Product::create([
-                                            'name' => $data['name'],
-                                        ]);
-
-                                        return $product->id;
-                                    }),
-                                TextInput::make('quantity')
-                                    ->numeric()
-                                    ->label('Qty')
-                                    ->required()
-                                    ->live() // Memperbarui nilai secara real-time
-                                    ->afterStateUpdated(function ($state, Set $set, $get) {
-                                        $set('total_harga', $state * $get('harga'));
-                                    }),
-                                TextInput::make('harga')
-                                    ->label('Harga')
-                                    ->numeric()
-                                    ->required()
-                                    ->live()
-                                    ->afterStateUpdated(function ($state, Set $set, $get) {
-                                        $set('total_harga', $get('quantity') * $state);
-                                    }),
-                                TextInput::make('total_harga')
-                                    ->label('Total Harga')
-                                    ->disabled()
-                                    ->numeric()
-                                    ->dehydrated(),
-                                Select::make('id_gudang')
-                                    ->label('Pilih Gudang')
-                                    ->options(Gudang::query()->pluck('name', 'id'))
-                                    ->searchable()
-                                    ->preload()
-                                    ->disabled(fn($operation) => $operation === 'edit')
+                        Select::make('id_product')
+                            ->options(Product::query()->pluck('name', 'id'))
+                            ->searchable()
+                            ->disabled(fn($operation) => $operation === 'edit')
+                            ->preload()
+                            ->label('Pilih Produk')
+                            ->required()
+                            ->createOptionForm([ // Form untuk membuat produk baru
+                                TextInput::make('name')
+                                    ->label('Nama Produk')
                                     ->required(),
-                                Select::make('keterangan')
-                                    ->label('Keterangan')
-                                    ->options([
-                                        'Kulakan' => 'Kulakan',
-                                        'Retur' => 'Retur'
-                                    ])
-                                    ->searchable()
-                                    ->preload()
-                                    ->required()
                             ])
-                            ->columns(3)
-                            ->orderColumn('sort')
-                            ->defaultItems(1)
+                            ->createOptionUsing(function (array $data) {
+                                // Simpan produk baru
+                                $product = Product::create([
+                                    'name' => $data['name'],
+                                ]);
+
+                                return $product->id;
+                            }),
+                        TextInput::make('quantity')
+                            ->numeric()
+                            ->label('Qty')
+                            ->required()
+                            ->live(onBlur: true) // Memperbarui nilai secara real-time
+                            ->afterStateUpdated(function ($state, Set $set, $get) {
+                                $set('total_harga', $state * $get('harga'));
+                            }),
+                        TextInput::make('harga')
+                            ->label('Harga')
+                            ->numeric()
+                            ->required()
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(function ($state, Set $set, $get) {
+                                $set('total_harga', $get('quantity') * $state);
+                            }),
+                        TextInput::make('total_harga')
+                            ->label('Total Harga')
+                            ->numeric()
+                            ->dehydrated(),
+                        Select::make('id_gudang')
+                            ->label('Pilih Gudang')
+                            ->options(Gudang::query()->pluck('name', 'id'))
+                            ->searchable()
+                            ->preload()
+                            ->disabled(fn($operation) => $operation === 'edit')
+                            ->required(),
+                        Select::make('keterangan')
+                            ->label('Keterangan')
+                            ->options([
+                                'Kulakan' => 'Kulakan',
+                                'Retur' => 'Retur'
+                            ])
+                            ->searchable()
+                            ->preload()
+                            ->required()
                     ])
+                    ->columns(3)
             ]);
     }
 
