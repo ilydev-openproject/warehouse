@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Tables;
 use App\Models\Product;
@@ -67,7 +68,7 @@ class WarehouseStockResource extends Resource
                 //
             ])
             ->actions([
-                // Tables\Actions\EditAction::make(),
+                EditAction::make()
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
