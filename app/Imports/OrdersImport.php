@@ -25,8 +25,8 @@ class OrdersImport implements ToModel
             ['resi' => $row[0] ?? null], // kolom unik
             [
                 'customer_name' => $row[1] ?? null,
-                'alamat'        => $row[2] ?? null,
-                'gross_amount'  => $row[4] ?? null,
+                'alamat' => $row[2] ?? null,
+                'gross_amount' => is_numeric($row[4]) ? $row[4] : 0,
             ]
         );
 
