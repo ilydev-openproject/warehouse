@@ -56,7 +56,10 @@ class StockInResource extends Resource
                                 TextInput::make('name')
                                     ->label('Nama Produk')
                                     ->required()
-                                    ->unique(Product::class, 'name'),
+                                    ->unique(Product::class, 'name')
+                                    ->validationMessages([
+                                        'unique' => 'Nama ini sudah ada di database.'
+                                    ]),
                             ])
                             ->createOptionUsing(function (array $data) {
                                 // Simpan produk baru
