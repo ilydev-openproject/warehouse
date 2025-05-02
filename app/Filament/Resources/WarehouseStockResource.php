@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
 use Filament\Tables;
 use App\Models\Product;
 use Filament\Forms\Form;
@@ -39,6 +40,9 @@ class WarehouseStockResource extends Resource
                     ->options(Product::query()->pluck('name', 'id'))
                     ->searchable(),
                 TextInput::make('quantity'),
+                DatePicker::make('expired_at')
+                    ->label('Expired')
+                    ->native(false),
             ]);
     }
 
@@ -57,6 +61,8 @@ class WarehouseStockResource extends Resource
                     ->formatStateUsing(fn($state) => $state . ' pcs')
                     ->sortable()
                     ->badge(),
+                TextColumn::make('expired_at')
+                    ->date('M Y'),
                 TextColumn::make('keterangan')
                     ->label('Keterangan')
                     ->searchable()

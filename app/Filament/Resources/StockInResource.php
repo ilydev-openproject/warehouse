@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
 use Filament\Tables;
 use App\Models\Gudang;
 use App\Models\Product;
@@ -85,6 +86,10 @@ class StockInResource extends Resource
                             ->afterStateUpdated(function ($state, Set $set, $get) {
                                 $set('total_harga', $get('quantity') * $state);
                             }),
+                        DatePicker::make('expired_at')
+                            ->label('Tanggal Kadaluarsa')
+                            ->required()
+                            ->native(false),
                         TextInput::make('total_harga')
                             ->label('Total Harga')
                             ->numeric()
@@ -104,7 +109,7 @@ class StockInResource extends Resource
                             ])
                             ->searchable()
                             ->preload()
-                            ->required()
+                            ->required(),
                     ])
                     ->columns(3)
             ]);
