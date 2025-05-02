@@ -55,7 +55,8 @@ class StockInResource extends Resource
                             ->createOptionForm([ // Form untuk membuat produk baru
                                 TextInput::make('name')
                                     ->label('Nama Produk')
-                                    ->required(),
+                                    ->required()
+                                    ->unique(Product::class, 'name'),
                             ])
                             ->createOptionUsing(function (array $data) {
                                 // Simpan produk baru
