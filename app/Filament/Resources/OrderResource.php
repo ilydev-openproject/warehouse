@@ -110,7 +110,6 @@ class OrderResource extends Resource
                                 TextInput::make('net_amount')
                                     ->label('Net Amount')
                                     ->numeric()
-                                    ->disabled(fn($record) => $record->status !== 'shipped')
                                     ->dehydrated(),
                             ])
                             ->columnSpan(2)
@@ -138,7 +137,8 @@ class OrderResource extends Resource
                                         'lost' => 'heroicon-o-trash',
                                     ])
                             ])
-                            ->columnSpan(2),
+                            ->columnSpan(2)
+                            ->visible(fn($livewire) => $livewire instanceof \Filament\Resources\Pages\EditRecord),
                         SectionLay::make('Detail Produk')
                             ->schema([
                                 Repeater::make('order_items')
