@@ -87,8 +87,8 @@ class WarehouseStockResource extends Resource
     {
         return [
             'index' => Pages\ListWarehouseStocks::route('/'),
-            'create' => Pages\CreateWarehouseStock::route('/create'),
-            'edit' => Pages\EditWarehouseStock::route('/{record}/edit'),
+            // 'create' => Pages\CreateWarehouseStock::route('/create'),
+            // 'edit' => Pages\EditWarehouseStock::route('/{record}/edit'),
         ];
     }
 }
