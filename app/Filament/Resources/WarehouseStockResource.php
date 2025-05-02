@@ -2,17 +2,20 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\WarehouseStockResource\Pages;
-use App\Filament\Resources\WarehouseStockResource\RelationManagers;
-use App\Models\WarehouseStock;
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
+use App\Models\Product;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use App\Models\WarehouseStock;
+use Filament\Resources\Resource;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\WarehouseStockResource\Pages;
+use App\Filament\Resources\WarehouseStockResource\RelationManagers;
 
 class WarehouseStockResource extends Resource
 {
@@ -32,7 +35,10 @@ class WarehouseStockResource extends Resource
     {
         return $form
             ->schema([
-                //
+                Select::make('id_product')
+                    ->options(Product::query()->pluck('name', 'id'))
+                    ->searchable(),
+                TextInput::make('quantity'),
             ]);
     }
 
