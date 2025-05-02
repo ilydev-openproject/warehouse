@@ -10,10 +10,5 @@ class ListWarehouseStocks extends ListRecords
 {
     protected static string $resource = WarehouseStockResource::class;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            Actions\CreateAction::make(),
-        ];
-    }
+
 }
