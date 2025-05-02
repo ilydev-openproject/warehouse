@@ -47,7 +47,8 @@ class WarehouseStockResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('product.name')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('gudang.name'),
                 TextColumn::make('quantity')
                     ->label('Qty')
@@ -87,8 +88,8 @@ class WarehouseStockResource extends Resource
     {
         return [
             'index' => Pages\ListWarehouseStocks::route('/'),
-            // 'create' => Pages\CreateWarehouseStock::route('/create'),
-            // 'edit' => Pages\EditWarehouseStock::route('/{record}/edit'),
+            'create' => Pages\CreateWarehouseStock::route('/create'),
+            'edit' => Pages\EditWarehouseStock::route('/{record}/edit'),
         ];
     }
 }
