@@ -117,7 +117,8 @@ class StockInResource extends Resource
                 TextColumn::make('updated_at')->formatStateUsing(fn($state) => date('d F Y', strtotime($state))),
                 TextColumn::make('product.name')
                     ->searchable()
-                    ->label('Nama Produk'),
+                    ->label('Nama Produk')
+                    ->sortable(),
                 TextColumn::make('harga')
                     ->money('idr'),
                 TextColumn::make('total_harga')
