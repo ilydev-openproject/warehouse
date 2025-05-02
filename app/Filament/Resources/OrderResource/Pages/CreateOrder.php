@@ -21,9 +21,7 @@ class CreateOrder extends CreateRecord
                 if ($item->fulfillment_type === 'warehouse') {
                     WarehouseStock::where([
                         'id_product' => $item->id_product,
-                        'id_gudang' => $item->id_gudang,
-                        'expired_at' => $item->expired_at,
-
+                        'id_gudang' => $item->id_gudang
                     ])->decrement('quantity', $item->quantity);
                 }
             }

@@ -373,7 +373,6 @@ class OrderResource extends Resource
                                     if ($item->fulfillment_type === 'warehouse') {
                                         WarehouseStock::where('id_product', $item->id_product)
                                             ->where('id_gudang', $item->id_gudang)
-                                            ->where('expired_at', $item->expired_at)
                                             ->increment('quantity', $item->quantity);
                                     }
                                     // Hapus itemnya
@@ -410,8 +409,7 @@ class OrderResource extends Resource
                                         // Stok dikembalikan saat restore (menambah kembali stok yang telah dibatalkan)
                                         WarehouseStock::where('id_product', $item->id_product)
                                             ->where('id_gudang', $item->id_gudang)
-                                            ->where('expired_at', $item->expired_at)
-                                            ->decrement('quantity', $item->quantity);
+                                            ->decrement('quantity', $item->quantity); // Menambah stok
                                     }
                                 }
                             }
@@ -436,7 +434,6 @@ class OrderResource extends Resource
                                     if ($item->fulfillment_type === 'warehouse') {
                                         WarehouseStock::where('id_product', $item->id_product)
                                             ->where('id_gudang', $item->id_gudang)
-                                            ->where('expired_at', $item->expired_at)
                                             ->increment('quantity', $item->quantity);
                                     }
 
@@ -465,7 +462,6 @@ class OrderResource extends Resource
                                     if ($item->fulfillment_type === 'warehouse') {
                                         WarehouseStock::where('id_product', $item->id_product)
                                             ->where('id_gudang', $item->id_gudang)
-                                            ->where('expired_at', $item->expired_at)
                                             ->increment('quantity', $item->quantity);
                                     }
 

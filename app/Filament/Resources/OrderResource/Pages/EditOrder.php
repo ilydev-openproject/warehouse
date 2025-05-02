@@ -25,7 +25,6 @@ class EditOrder extends EditRecord
                 $gudangId = $updatedItem['id_gudang'];
                 $newQty = $updatedItem['quantity'];
                 $fulfillmentType = $updatedItem['fulfillment_type'];
-                $expiredAt = $updatedItem['expired_at'] ?? null;
 
                 // Jika warehouse, maka perlu update stok
                 if ($fulfillmentType === 'warehouse') {
@@ -40,7 +39,6 @@ class EditOrder extends EditRecord
                     WarehouseStock::where([
                         'id_product' => $productId,
                         'id_gudang' => $gudangId,
-                        'expired_at' => $expiredAt,
                     ])->increment('quantity', $diff);
                 }
             }
