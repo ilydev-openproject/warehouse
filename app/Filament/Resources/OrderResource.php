@@ -295,6 +295,11 @@ class OrderResource extends Resource
                         default => ucwords($state),
                     })
                     ->badge(),
+                TextInputColumn::make('kode_bigseller')
+                    ->label('Kode Big Seller')
+                    ->extraAttributes([
+                        'style' => 'width: 70px; min-width: 70px;', // atau '10%' jika pakai persentase
+                    ]),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
