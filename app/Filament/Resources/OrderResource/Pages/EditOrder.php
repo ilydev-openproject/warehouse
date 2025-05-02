@@ -49,4 +49,9 @@ class EditOrder extends EditRecord
             ->success()
             ->send();
     }
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }
+
