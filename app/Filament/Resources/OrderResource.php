@@ -296,7 +296,7 @@ class OrderResource extends Resource
                     })
                     ->badge(),
                 TextInputColumn::make('kode_bigseller')
-                    ->label('Kode Big Seller')
+                    ->label('Kode')
                     ->extraAttributes([
                         'style' => 'width: 70px; min-width: 70px;', // atau '10%' jika pakai persentase
                     ]),
