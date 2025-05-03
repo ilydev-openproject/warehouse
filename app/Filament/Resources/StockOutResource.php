@@ -46,10 +46,11 @@ class StockOutResource extends Resource
                     ->searchable(),
                 TextColumn::make('Total Quantity')
                     ->getStateUsing(function ($record) {
+                        // Mengambil total quantity berdasarkan id_product, id_gudang, dan tanggal order
                         return StockOut::sumQuantityByProductGudangDate(
                             $record->id_product,
                             $record->id_gudang,
-                            $record->created_at->format('Y-m-d')
+                            $record->order->created_at->format('Y-m-d') // Menggunakan created_at dari relasi 'order'
                         );
                     })
                     ->label('Total Quantity')
@@ -58,9 +59,6 @@ class StockOutResource extends Resource
                 TextColumn::make('gudang.name')
                     ->label('Gudang')
                     ->searchable(),
-
-                TextColumn::make('quantity')
-                    ->label('Jumlah Keluar'),
 
                 TextColumn::make('order.created_at')
                     ->label('Tanggal Order')
