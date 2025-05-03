@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class StockOut extends Model
 {
     use HasFactory;
-    protected $table = 'order_items'; // pakai tabel order_items
+    protected $table = 'order_items';
 
     public function product(): BelongsTo
     {
@@ -24,5 +25,13 @@ class StockOut extends Model
     public function gudang(): BelongsTo
     {
         return $this->belongsTo(Gudang::class, 'id_gudang');
+    }
+
+    public function scopeSumQuantityByProductGudangDate(Builder $query, $productId, $gudangId, $date)
+    {
+        return $query->where('id_product', $productId)
+            ->where('id_gudang', $gudangId)
+            ->whereDate('order_items.created_at', $date)
+            ->sum('quantity');
     }
 }

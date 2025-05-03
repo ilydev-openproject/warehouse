@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Illuminate\Support\Facades\DB;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\StockOutResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -40,18 +41,28 @@ class StockOutResource extends Resource
 
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('product.name')
+                TextColumn::make('product.name')
                     ->label('Nama Produk')
                     ->searchable(),
+                TextColumn::make('Total Quantity')
+                    ->getStateUsing(function ($record) {
+                        return StockOut::sumQuantityByProductGudangDate(
+                            $record->id_product,
+                            $record->id_gudang,
+                            $record->created_at->format('Y-m-d')
+                        );
+                    })
+                    ->label('Total Quantity')
+                    ->sortable(),
 
-                Tables\Columns\TextColumn::make('gudang.name')
+                TextColumn::make('gudang.name')
                     ->label('Gudang')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('quantity')
+                TextColumn::make('quantity')
                     ->label('Jumlah Keluar'),
 
-                Tables\Columns\TextColumn::make('order.created_at')
+                TextColumn::make('order.created_at')
                     ->label('Tanggal Order')
                     ->date('d M Y'),
             ])
