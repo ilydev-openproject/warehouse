@@ -11,22 +11,6 @@ class StockOut extends Model
     use HasFactory;
     protected $table = 'order_items'; // pakai tabel order_items
 
-    public function scopeWarehouse($query, $startDate = null, $endDate = null)
-    {
-        $query->whereHas('order', function ($query) {
-            $query->where('fulfillment_type', 'warehouse');
-        });
-
-        if ($startDate) {
-            $query->whereDate('orders.created_at', '>=', $startDate);
-        }
-
-        if ($endDate) {
-            $query->whereDate('orders.created_at', '<=', $endDate);
-        }
-
-        return $query;
-    }
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'id_product');

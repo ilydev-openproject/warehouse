@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Illuminate\Support\Facades\DB;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\StockOutResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -34,24 +35,33 @@ class StockOutResource extends Resource
                 //
             ]);
     }
-
+    public static function getEloquentQuery(): Builder
+    {
+        return StockOut::query()
+            ->select('id_product', 'id_gudang', DB::raw('SUM(quantity) as total_keluar'))
+            ->where('fulfillment_type', 'gudangs')
+            ->groupBy('id_product', 'id_gudang');
+    }
     public static function table(Table $table): Table
     {
 
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('product.name')
+                TextColumn::make('product.name')->label('Nama Produk'),
+                TextColumn::make('gudang.nama')->label('Gudang'),
+                TextColumn::make('total_keluar')->label('Jumlah Keluar'),
+                TextColumn::make('product.name')
                     ->label('Nama Produk')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('gudang.name')
+                TextColumn::make('gudang.name')
                     ->label('Gudang')
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('quantity')
+                TextColumn::make('total_keluar')
                     ->label('Jumlah Keluar'),
 
-                Tables\Columns\TextColumn::make('order.created_at')
+                TextColumn::make('order.created_at')
                     ->label('Tanggal Order')
                     ->date('d M Y'),
             ])
