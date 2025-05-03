@@ -4,6 +4,8 @@ namespace App\Filament\Resources;
 
 use Filament\Forms;
 use Filament\Tables;
+use App\Models\Gudang;
+use App\Models\Product;
 use App\Models\StockOut;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
@@ -35,12 +37,18 @@ class StockOutResource extends Resource
                 //
             ]);
     }
-    public function getTableQuery()
+    public static function getEloquentQuery(): Builder
     {
-        // Ambil data yang dikelompokkan berdasarkan produk, gudang, dan tanggal
-        return StockOut::with(['product', 'gudang', 'order'])
-            ->selectRaw('product_id, id_gudang, DATE(order_items.created_at) as tanggal, SUM(order_items.quantity) as total_quantity')
-            ->groupBy('product_id', 'id_gudang', 'tanggal');
+        return parent::getEloquentQuery()
+            ->selectRaw('
+            MIN(id) as id,
+            DATE(created_at) as date,
+            id_gudang,
+            id_product,
+            SUM(quantity) as total_quantity
+        ')
+            ->groupBy('date', 'id_gudang', 'id_product')
+            ->orderBy('date', 'desc');
     }
 
     public static function table(Table $table): Table
@@ -48,28 +56,31 @@ class StockOutResource extends Resource
 
         return $table
             ->columns([
-                TextColumn::make('product.name')
-                    ->label('Nama Produk')
-                    ->searchable(),
-                TextColumn::make('Total Quantity')
-                    ->getStateUsing(function ($record) {
-                        // Mengambil total quantity berdasarkan id_product, id_gudang, dan tanggal
-                        return StockOut::sumQuantityByProductGudangDate(
-                            $record->id_product,
-                            $record->id_gudang,
-                            $record->order->created_at->format('Y-m-d') // Menggunakan created_at dari relasi 'order'
-                        );
-                    })
-                    ->label('Total Quantity')
+                TextColumn::make('date') // Ganti dari created_at ke date
+                    ->label('Tanggal')
+                    ->date()
                     ->sortable(),
 
-                TextColumn::make('gudang.name')
+                TextColumn::make('id_gudang')
                     ->label('Gudang')
-                    ->searchable(),
+                    ->formatStateUsing(fn($state) => Gudang::find($state)?->name ?? $state)
+                    ->searchable()
+                    ->sortable(),
 
-                TextColumn::make('order.created_at')
-                    ->label('Tanggal Order')
-                    ->date('d M Y'),
+                TextColumn::make('id_product')
+                    ->label('Produk')
+                    ->formatStateUsing(fn($state) => Product::find($state)?->name ?? $state)
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('total_quantity')
+                    ->label('Jumlah Keluar')
+                    ->numeric()
+                    ->sortable()
+                    ->summarize([
+                        Tables\Columns\Summarizers\Sum::make()
+                            ->label('Total Keluar')
+                    ]),
             ])
             ->filters([
                 //

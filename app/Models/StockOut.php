@@ -27,15 +27,6 @@ class StockOut extends Model
         return $this->belongsTo(Gudang::class, 'id_gudang');
     }
 
-    public function scopeSumQuantityByProductGudangDate(Builder $query, $productId, $gudangId, $date)
-    {
-        return $query->where('id_product', $productId)
-            ->where('id_gudang', $gudangId)
-            ->whereDate('order_items.created_at', $date)
-            ->groupBy('id_product', 'id_gudang', 'created_at')  // Pastikan sudah ada pengelompokan
-            ->sum('quantity');
-    }
-
 
 
 }
