@@ -49,15 +49,15 @@ class StockOutResource extends Resource
                         return $record->order_items->map(function ($order_items) {
                             return $order_items->product->name . ' - ' . $order_items->quantity . ' pcs';
                         })->implode(', ');
-                    })
-                    ->searchable(),
+                    }),
                 TextColumn::make('gudang')
                     ->label('Gudang')
                     ->getStateUsing(function ($record) {
                         return $record->order_items->map(function ($item) {
                             return $item->gudang->name ?? '-';
                         })->unique()->implode(', ');
-                    }),
+                    })
+                    ->searchable(),
             ])
             ->filters([
                 //
