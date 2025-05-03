@@ -42,13 +42,15 @@ class StockOutResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('created_at')
-                    ->date('d M Y'),
+                    ->date('d M Y')
+                    ->searchable(),
                 TextColumn::make('pruduct.name')
                     ->getStateUsing(function ($record) {
                         return $record->order_items->map(function ($order_items) {
                             return $order_items->product->name . ' - ' . $order_items->quantity . ' pcs';
                         })->implode(', ');
-                    }),
+                    })
+                    ->searchable(),
                 TextColumn::make('gudang')
                     ->label('Gudang')
                     ->getStateUsing(function ($record) {
