@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\Orders;
 use Filament\Forms;
 use Filament\Tables;
 use App\Models\StockOut;
@@ -17,7 +18,7 @@ use App\Filament\Resources\StockOutResource\RelationManagers;
 
 class StockOutResource extends Resource
 {
-    protected static ?string $model = StockOut::class;
+    protected static ?string $model = Orders::class;
 
     protected static ?string $modelLabel = 'Stok Keluar';
 
@@ -35,35 +36,26 @@ class StockOutResource extends Resource
                 //
             ]);
     }
-    public static function getEloquentQuery(): Builder
-    {
-        return StockOut::query()
-            ->select('id_product', 'id_gudang', DB::raw('SUM(quantity) as total_keluar'))
-            ->where('fulfillment_type', 'gudangs')
-            ->groupBy('id_product', 'id_gudang');
-    }
+
     public static function table(Table $table): Table
     {
-
         return $table
             ->columns([
-                TextColumn::make('product.name')->label('Nama Produk'),
-                TextColumn::make('gudang.nama')->label('Gudang'),
-                TextColumn::make('total_keluar')->label('Jumlah Keluar'),
-                TextColumn::make('product.name')
-                    ->label('Nama Produk')
-                    ->searchable(),
-
-                TextColumn::make('gudang.name')
-                    ->label('Gudang')
-                    ->searchable(),
-
-                TextColumn::make('total_keluar')
-                    ->label('Jumlah Keluar'),
-
-                TextColumn::make('order.created_at')
-                    ->label('Tanggal Order')
+                TextColumn::make('created_at')
                     ->date('d M Y'),
+                TextColumn::make('pruduct.name')
+                    ->getStateUsing(function ($record) {
+                        return $record->order_items->map(function ($order_items) {
+                            return $order_items->product->name . ' - ' . $order_items->quantity . ' pcs';
+                        })->implode(', ');
+                    }),
+                TextColumn::make('gudang')
+                    ->label('Gudang')
+                    ->getStateUsing(function ($record) {
+                        return $record->order_items->map(function ($item) {
+                            return $item->gudang->name ?? '-';
+                        })->unique()->implode(', ');
+                    }),
             ])
             ->filters([
                 //
