@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Tables;
 use App\Models\Gudang;
@@ -80,7 +81,35 @@ class StockOutResource extends Resource
                     ]),
             ])
             ->filters([
-                //
+                Tables\Filters\Filter::make('created_at')
+                    ->form([
+                        Forms\Components\DatePicker::make('mulai')
+                            ->placeholder(fn($state): string => 'Dec 18, ' . now()->subYear()->format('Y')),
+                        Forms\Components\DatePicker::make('sampai')
+                            ->placeholder(fn($state): string => now()->format('M d, Y')),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['mulai'] ?? null,
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['sampai'] ?? null,
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if ($data['mulai'] ?? null) {
+                            $indicators['mulai'] = 'Order from ' . Carbon::parse($data['mulai'])->toFormattedDateString();
+                        }
+                        if ($data['sampai'] ?? null) {
+                            $indicators['sampai'] = 'Order until ' . Carbon::parse($data['sampai'])->toFormattedDateString();
+                        }
+
+                        return $indicators;
+                    }),
             ])
             ->actions([
                 // Tables\Actions\EditAction::make(),
