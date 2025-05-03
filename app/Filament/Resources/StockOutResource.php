@@ -84,9 +84,11 @@ class StockOutResource extends Resource
                 Tables\Filters\Filter::make('created_at')
                     ->form([
                         Forms\Components\DatePicker::make('mulai')
-                            ->placeholder(fn($state): string => 'Dec 18, ' . now()->subYear()->format('Y')),
+                            ->placeholder(fn($state): string => 'Dec 18, ' . now()->subYear()->format('Y'))
+                            ->native(false),
                         Forms\Components\DatePicker::make('sampai')
-                            ->placeholder(fn($state): string => now()->format('M d, Y')),
+                            ->placeholder(fn($state): string => now()->format('M d, Y'))
+                            ->native(false),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
