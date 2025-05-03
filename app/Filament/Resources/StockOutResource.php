@@ -55,8 +55,8 @@ class StockOutResource extends Resource
                 TextColumn::make('Total Quantity')
                     ->getStateUsing(function ($record) {
                         return StockOut::sumQuantityByProductGudangDate(
-                            $record->id_product,         // Menggunakan ID produk dari record
-                            $record->id_gudang,          // Menggunakan ID gudang dari record
+                            $record->id_product,
+                            $record->id_gudang,
                             $record->order->created_at->format('Y-m-d') // Menggunakan created_at dari order terkait
                         );
                     })
