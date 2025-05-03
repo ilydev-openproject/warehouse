@@ -56,8 +56,7 @@ class StockOutResource extends Resource
                         return $record->order_items->map(function ($item) {
                             return $item->gudang->name ?? '-';
                         })->unique()->implode(', ');
-                    })
-                    ->searchable(),
+                    }),
             ])
             ->filters([
                 //
