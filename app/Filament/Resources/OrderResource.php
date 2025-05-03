@@ -266,7 +266,8 @@ class OrderResource extends Resource
                 TextColumn::make('platform.name'),
                 TextColumn::make('gross_amount')
                     ->money('idr')
-                    ->label('Omset Kotor'),
+                    ->label('Omset Kotor')
+                    ->sortable(),
                 // TextColumn::make('shipping_cost')
                 //     ->money('idr')
                 //     ->label('Biaya Kirim'),
