@@ -31,6 +31,9 @@ class OrderStats extends BaseWidget
             Stat::make('Nilai Kotor Total', 'Rp ' . number_format($query->sum('gross_amount'), 0, ',', '.'))
                 ->color('primary'),
 
+            Stat::make('Omset Bersih', 'Rp ' . number_format($query->where('status', 'shipped')->sum('net_amount'), 0, ',', '.'))
+                ->color('primary'),
+
             Stat::make('Pesanan Dikirim', $query->where('status', 'shipped')->count())
                 ->color('success')
                 ->icon('heroicon-o-truck'),
