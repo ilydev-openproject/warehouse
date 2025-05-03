@@ -64,19 +64,16 @@ class StockOutResource extends Resource
                 TextColumn::make('id_gudang')
                     ->label('Gudang')
                     ->formatStateUsing(fn($state) => Gudang::find($state)?->name ?? $state)
-                    ->searchable()
-                    ->sortable(),
+                    ->searchable(),
 
                 TextColumn::make('id_product')
                     ->label('Produk')
                     ->formatStateUsing(fn($state) => Product::find($state)?->name ?? $state)
-                    ->searchable()
-                    ->sortable(),
+                    ->searchable(),
 
                 TextColumn::make('total_quantity')
                     ->label('Jumlah Keluar')
                     ->numeric()
-                    ->sortable()
                     ->summarize([
                         Tables\Columns\Summarizers\Sum::make()
                             ->label('Total Keluar')
