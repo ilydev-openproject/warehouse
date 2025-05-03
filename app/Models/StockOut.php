@@ -32,6 +32,8 @@ class StockOut extends Model
         return $query->where('id_product', $productId)
             ->where('id_gudang', $gudangId)
             ->whereDate('order_items.created_at', $date)
+            ->groupBy('id_product', 'id_gudang', 'created_at')  // Menambahkan group by untuk pengelompokan berdasarkan tanggal
             ->sum('quantity');
     }
+
 }

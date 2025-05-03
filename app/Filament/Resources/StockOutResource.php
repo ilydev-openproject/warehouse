@@ -35,6 +35,14 @@ class StockOutResource extends Resource
                 //
             ]);
     }
+    public function getTableQuery()
+    {
+        // Ambil data yang dikelompokkan berdasarkan produk, gudang, dan tanggal
+        return StockOut::with(['product', 'gudang', 'order'])
+            ->selectRaw('product_id, id_gudang, DATE(order_items.created_at) as tanggal, SUM(order_items.quantity) as total_quantity')
+            ->groupBy('product_id', 'id_gudang', 'tanggal') // Mengelompokkan berdasarkan product_id, id_gudang, dan tanggal
+            ->orderBy('tanggal'); // Urutkan berdasarkan tanggal
+    }
 
     public static function table(Table $table): Table
     {
