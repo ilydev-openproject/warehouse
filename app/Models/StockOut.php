@@ -32,7 +32,6 @@ class StockOut extends Model
         return $query->where('id_product', $productId)
             ->where('id_gudang', $gudangId)
             ->whereDate('created_at', $date)
-            ->distinct() // Menghindari duplikasi
             ->sum('quantity');
     }
 
