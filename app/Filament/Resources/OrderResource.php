@@ -82,6 +82,8 @@ class OrderResource extends Resource
                             ->validationMessages([
                                 'required' => 'Tidak Boleh Kosong'
                             ]),
+                        TextInput::make('kode_bigseller')
+
                     ])
                     ->columnSpan(1),
 
