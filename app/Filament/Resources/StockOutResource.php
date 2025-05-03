@@ -40,8 +40,7 @@ class StockOutResource extends Resource
         // Ambil data yang dikelompokkan berdasarkan produk, gudang, dan tanggal
         return StockOut::with(['product', 'gudang', 'order'])
             ->selectRaw('product_id, id_gudang, DATE(order_items.created_at) as tanggal, SUM(order_items.quantity) as total_quantity')
-            ->groupBy('product_id', 'id_gudang', 'tanggal') // Mengelompokkan berdasarkan product_id, id_gudang, dan tanggal
-            ->orderBy('tanggal'); // Urutkan berdasarkan tanggal
+            ->groupBy('product_id', 'id_gudang', 'tanggal');
     }
 
     public static function table(Table $table): Table
@@ -54,10 +53,11 @@ class StockOutResource extends Resource
                     ->searchable(),
                 TextColumn::make('Total Quantity')
                     ->getStateUsing(function ($record) {
+                        // Mengambil total quantity berdasarkan id_product, id_gudang, dan tanggal
                         return StockOut::sumQuantityByProductGudangDate(
                             $record->id_product,
                             $record->id_gudang,
-                            $record->order->created_at->format('Y-m-d') // Menggunakan created_at dari order terkait
+                            $record->order->created_at->format('Y-m-d') // Menggunakan created_at dari relasi 'order'
                         );
                     })
                     ->label('Total Quantity')
