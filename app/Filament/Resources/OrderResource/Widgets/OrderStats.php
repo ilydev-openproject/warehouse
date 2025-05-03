@@ -28,7 +28,7 @@ class OrderStats extends BaseWidget
                 ->descriptionIcon('heroicon-m-arrow-trending-up')
                 ->color('success'),
 
-            Stat::make('Nilai Kotor Rata-rata', 'Rp ' . number_format($query->avg('gross_amount'), 0, ',', '.'))
+            Stat::make('Nilai Kotor Total', 'Rp ' . number_format($query->where('status', 'shipped')->sum('gross_amount'), 0, ',', '.'))
                 ->color('primary'),
 
             Stat::make('Pesanan Dikirim', $query->where('status', 'shipped')->count())
