@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\Orders;
 use Filament\Forms;
 use Filament\Tables;
 use App\Models\StockOut;
@@ -10,7 +9,6 @@ use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Illuminate\Support\Facades\DB;
-use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\StockOutResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -18,7 +16,7 @@ use App\Filament\Resources\StockOutResource\RelationManagers;
 
 class StockOutResource extends Resource
 {
-    protected static ?string $model = Orders::class;
+    protected static ?string $model = StockOut::class;
 
     protected static ?string $modelLabel = 'Stok Keluar';
 
@@ -39,24 +37,23 @@ class StockOutResource extends Resource
 
     public static function table(Table $table): Table
     {
+
         return $table
             ->columns([
-                TextColumn::make('created_at')
-                    ->date('d M Y')
+                Tables\Columns\TextColumn::make('product.name')
+                    ->label('Nama Produk')
                     ->searchable(),
-                TextColumn::make('pruduct.name')
-                    ->getStateUsing(function ($record) {
-                        return $record->order_items->map(function ($order_items) {
-                            return $order_items->product->name . ' - ' . $order_items->quantity . ' pcs';
-                        })->implode(', ');
-                    }),
-                TextColumn::make('gudang')
+
+                Tables\Columns\TextColumn::make('gudang.name')
                     ->label('Gudang')
-                    ->getStateUsing(function ($record) {
-                        return $record->order_items->map(function ($item) {
-                            return $item->gudang->name ?? '-';
-                        })->unique()->implode(', ');
-                    }),
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('quantity')
+                    ->label('Jumlah Keluar'),
+
+                Tables\Columns\TextColumn::make('order.created_at')
+                    ->label('Tanggal Order')
+                    ->date('d M Y'),
             ])
             ->filters([
                 //
