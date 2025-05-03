@@ -58,7 +58,7 @@ class StockOutResource extends Resource
                         return StockOut::sumQuantityByProductGudangDate(
                             $record->id_product,
                             $record->id_gudang,
-                            $record->order->created_at->format('Y-m-d') // Menggunakan created_at dari relasi 'order'
+                            $record->created_at->format('Y-m-d')
                         );
                     })
                     ->label('Total Quantity')
