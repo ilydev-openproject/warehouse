@@ -297,7 +297,7 @@ class OrderResource extends Resource
                         default => ucwords($state),
                     })
                     ->badge(),
-                TextInput::make('kode_bigseller'),
+                TextColumn::make('kode_bigseller'),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
