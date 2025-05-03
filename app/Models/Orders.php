@@ -22,6 +22,11 @@ class Orders extends Model
         return $this->belongsTo(Product::class, 'id_product');
     }
 
+    public function stockOut()
+    {
+        return $this->hasMany(StockOut::class, 'id');
+    }
+
     public function gudang()
     {
         return $this->belongsTo(Gudang::class, 'id_gudang');
