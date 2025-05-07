@@ -42,13 +42,16 @@ class StockOutResource extends Resource
     {
         return parent::getEloquentQuery()
             ->selectRaw('
-            MIN(id) as id,
-            DATE(created_at) as date,
+            MIN(order_items.id) as id,
+            DATE(order_items.created_at) as date,
             id_gudang,
             id_product,
-            SUM(quantity) as total_quantity
+            SUM(quantity) as total_quantity,
+            COALESCE(products.hpp, 0) as hpp,
+            COALESCE(products.het, 0) as het
         ')
-            ->groupBy('date', 'id_gudang', 'id_product')
+            ->join('products', 'order_items.id_product', '=', 'products.id')
+            ->groupBy('date', 'id_gudang', 'id_product', 'products.hpp', 'products.het')
             ->orderBy('date', 'desc');
     }
 
@@ -82,14 +85,32 @@ class StockOutResource extends Resource
                 TextColumn::make('hpp')
                     ->label('Total HPP')
                     ->formatStateUsing(function ($state, $record) {
-                        // Ambil HPP dari tabel product berdasarkan id_product
-                        $hpp = Product::find($record->id_product)?->hpp ?? 0;
+                        $productId = $record->id_product;
+                        $quantity = $record->total_quantity;
 
-                        // Kalikan dengan total_quantity yang sudah di-select dari query
-                        $totalHpp = $hpp * $record->total_quantity;
+                        if (!$productId || !$quantity) {
+                            return '0';
+                        }
 
-                        return number_format($totalHpp, 0, ',', '.'); // Format tampilan
-                    }),
+                        $hpp = \App\Models\Product::find($productId)?->hpp ?? 0;
+                        return number_format($hpp * $quantity, 0, ',', '.');
+                    })
+                    ->money('idr'),
+                TextColumn::make('het')
+                    ->label('Total HET')
+                    ->formatStateUsing(function ($state, $record) {
+                        $productId = $record->id_product;
+                        $quantity = $record->total_quantity;
+
+                        if (!$productId || !$quantity) {
+                            return '0';
+                        }
+
+                        $het = \App\Models\Product::find($productId)?->het ?? 0;
+                        return number_format($het * $quantity, 0, ',', '.');
+                    })
+                    ->money('idr'),
+
             ])
             ->filters([
                 Tables\Filters\Filter::make('created_at')
