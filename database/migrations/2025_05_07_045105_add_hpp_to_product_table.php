@@ -10,8 +10,9 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::table('stock_ins', function (Blueprint $table) {
-            $table->date('expired_at')->nullable()->after('harga');
+        Schema::table('products', function (Blueprint $table) {
+            $table->decimal('hpp', 18, 2)->after('name');
+            $table->decimal('htt', 18, 2)->after('hpp');
         });
     }
 
@@ -20,7 +21,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::table('stock_ins', function (Blueprint $table) {
+        Schema::table('product', function (Blueprint $table) {
             //
         });
     }
