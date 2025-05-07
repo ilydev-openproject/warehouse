@@ -94,7 +94,7 @@ class StockOutResource extends Resource
                     })
                     ->summarize([
                         Tables\Columns\Summarizers\Sum::make()
-                            ->label('Total Keluar')
+                            ->label('Total HPP')
                             ->formatStateUsing(fn($state) => 'Rp ' . number_format($state, 0, ',', '.'))
                     ]),
 
