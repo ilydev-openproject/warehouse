@@ -95,7 +95,11 @@ class StockOutResource extends Resource
                         $hpp = \App\Models\Product::find($productId)?->hpp ?? 0;
                         return number_format($hpp * $quantity, 0, ',', '.');
                     })
-                    ->money('idr'),
+                    ->money('idr')
+                    ->summarize([
+                        Tables\Columns\Summarizers\Sum::make()
+                            ->label('Total HPP')
+                    ]),
                 TextColumn::make('het')
                     ->label('Total HET')
                     ->formatStateUsing(function ($state, $record) {
@@ -109,7 +113,11 @@ class StockOutResource extends Resource
                         $het = \App\Models\Product::find($productId)?->het ?? 0;
                         return number_format($het * $quantity, 0, ',', '.');
                     })
-                    ->money('idr'),
+                    ->money('idr')
+                    ->summarize([
+                        Tables\Columns\Summarizers\Sum::make()
+                            ->label('Total HET')
+                    ]),
 
             ])
             ->filters([
