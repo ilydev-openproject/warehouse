@@ -99,6 +99,7 @@ class StockOutResource extends Resource
                     ->summarize([
                         Tables\Columns\Summarizers\Sum::make()
                             ->label('Total HPP')
+                            ->money('idr')
                     ]),
                 TextColumn::make('het')
                     ->label('Total HET')
@@ -117,6 +118,7 @@ class StockOutResource extends Resource
                     ->summarize([
                         Tables\Columns\Summarizers\Sum::make()
                             ->label('Total HET')
+                            ->money('idr')
                     ]),
 
             ])
