@@ -34,7 +34,15 @@ class ProductResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->label('Nama Produk')
-                    ->required()
+                    ->required(),
+                TextInput::make('hpp')
+                    ->label('HPP')
+                    ->numeric()
+                    ->required(),
+                TextInput::make('het')
+                    ->label('HET')
+                    ->numeric()
+                    ->required(),
             ]);
     }
 
@@ -44,7 +52,13 @@ class ProductResource extends Resource
             ->columns([
                 TextColumn::make('name')
                     ->label('Nama Produk')
-                    ->searchable()
+                    ->searchable(),
+                TextColumn::make('hpp')
+                    ->label('HPP')
+                    ->money('idr'),
+                TextColumn::make('het')
+                    ->label('HET')
+                    ->money('idr'),
             ])
             ->filters([
                 //
