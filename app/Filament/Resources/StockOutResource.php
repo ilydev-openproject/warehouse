@@ -42,14 +42,15 @@ class StockOutResource extends Resource
     {
         return parent::getEloquentQuery()
             ->selectRaw('
-            MIN(order_items.id) as id,
-            DATE(order_items.created_at) as date,
-            id_gudang,
-            id_product,
-            SUM(quantity) as total_quantity,
-            COALESCE(products.hpp, 0) as hpp,
-            COALESCE(products.het, 0) as het
-        ')
+        MIN(order_items.id) as id,
+        DATE(order_items.created_at) as date,
+        id_gudang,
+        id_product,
+        SUM(quantity) as total_quantity,
+        COALESCE(products.hpp, 0) as hpp,
+        COALESCE(SUM(quantity) * products.hpp, 0) as total_hpp
+    ')
+
             ->join('products', 'order_items.id_product', '=', 'products.id')
             ->groupBy('date', 'id_gudang', 'id_product', 'products.hpp', 'products.het')
             ->orderBy('date', 'desc');
@@ -84,19 +85,16 @@ class StockOutResource extends Resource
                     ]),
                 TextColumn::make('product.hpp')
                     ->label('HPP')
-                    ->formatStateUsing(fn($state) => 'Rp ' . number_format($state, 0, ',', '.')),
-                TextColumn::make('hpp')
+                    ->money('idr'),
+                TextColumn::make('total_hpp')
                     ->label('Total HPP')
-                    ->formatStateUsing(function ($state, $record) {
-                        $productHpp = \App\Models\Product::find($record->id_product)?->hpp ?? 0;
-                        $total = $productHpp * $record->total_quantity;
-                        return 'Rp ' . number_format($total, 0, ',', '.');
-                    })
+                    ->money('idr') // atau pakai formatStateUsing kalau ingin custom
                     ->summarize([
                         Tables\Columns\Summarizers\Sum::make()
                             ->label('Total HPP')
-                            ->formatStateUsing(fn($state) => 'Rp ' . number_format($state, 0, ',', '.'))
+                            ->money('idr')
                     ]),
+
 
             ])
             ->filters([
