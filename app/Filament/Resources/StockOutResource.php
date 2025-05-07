@@ -108,11 +108,11 @@ class StockOutResource extends Resource
                         return $query
                             ->when(
                                 $data['mulai'] ?? null,
-                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('order_items.created_at', '>=', $date),
                             )
                             ->when(
                                 $data['sampai'] ?? null,
-                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('order_items.created_at', '<=', $date),
                             );
                     })
                     ->indicateUsing(function (array $data): array {
