@@ -82,44 +82,16 @@ class StockOutResource extends Resource
                         Tables\Columns\Summarizers\Sum::make()
                             ->label('Total Keluar')
                     ]),
+                TextColumn::make('product.hpp')
+                    ->label('HPP')
+                    ->formatStateUsing(fn($state) => 'Rp ' . number_format($state, 0, ',', '.')),
                 TextColumn::make('hpp')
                     ->label('Total HPP')
                     ->formatStateUsing(function ($state, $record) {
-                        $productId = $record->id_product;
-                        $quantity = $record->total_quantity;
-
-                        if (!$productId || !$quantity) {
-                            return '0';
-                        }
-
-                        $hpp = \App\Models\Product::find($productId)?->hpp ?? 0;
-                        return number_format($hpp * $quantity, 0, ',', '.');
-                    })
-                    ->money('idr')
-                    ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()
-                            ->label('Total HPP')
-                            ->money('idr')
-                    ]),
-                TextColumn::make('het')
-                    ->label('Total HET')
-                    ->formatStateUsing(function ($state, $record) {
-                        $productId = $record->id_product;
-                        $quantity = $record->total_quantity;
-
-                        if (!$productId || !$quantity) {
-                            return '0';
-                        }
-
-                        $het = \App\Models\Product::find($productId)?->het ?? 0;
-                        return number_format($het * $quantity, 0, ',', '.');
-                    })
-                    ->money('idr')
-                    ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()
-                            ->label('Total HET')
-                            ->money('idr')
-                    ]),
+                        $productHpp = \App\Models\Product::find($record->id_product)?->hpp ?? 0;
+                        $total = $productHpp * $record->total_quantity;
+                        return 'Rp ' . number_format($total, 0, ',', '.');
+                    }),
 
             ])
             ->filters([
