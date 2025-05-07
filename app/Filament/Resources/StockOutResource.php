@@ -91,7 +91,12 @@ class StockOutResource extends Resource
                         $productHpp = \App\Models\Product::find($record->id_product)?->hpp ?? 0;
                         $total = $productHpp * $record->total_quantity;
                         return 'Rp ' . number_format($total, 0, ',', '.');
-                    }),
+                    })
+                    ->summarize([
+                        Tables\Columns\Summarizers\Sum::make()
+                            ->label('Total Keluar')
+                            ->formatStateUsing(fn($state) => 'Rp ' . number_format($state, 0, ',', '.'))
+                    ]),
 
             ])
             ->filters([
