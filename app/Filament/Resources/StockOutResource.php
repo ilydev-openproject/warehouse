@@ -79,6 +79,17 @@ class StockOutResource extends Resource
                         Tables\Columns\Summarizers\Sum::make()
                             ->label('Total Keluar')
                     ]),
+                TextColumn::make('hpp')
+                    ->label('Total HPP')
+                    ->formatStateUsing(function ($state, $record) {
+                        // Ambil HPP dari tabel product berdasarkan id_product
+                        $hpp = Product::find($record->id_product)?->hpp ?? 0;
+
+                        // Kalikan dengan total_quantity yang sudah di-select dari query
+                        $totalHpp = $hpp * $record->total_quantity;
+
+                        return number_format($totalHpp, 0, ',', '.'); // Format tampilan
+                    }),
             ])
             ->filters([
                 Tables\Filters\Filter::make('created_at')
