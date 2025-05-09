@@ -15,4 +15,9 @@ class Platform extends Model
     {
         return $this->hasMany(Orders::class, 'id_platform');
     }
+
+    public function dana_real()
+    {
+        return $this->hasMany(DanaReal::class, 'id_platform');
+    }
 }
