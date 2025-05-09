@@ -8,12 +8,14 @@ use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
+use Spatie\Permission\Models\Role;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\UserResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\UserResource\RelationManagers;
-use Filament\Tables\Columns\TextColumn;
 
 class UserResource extends Resource
 {
@@ -40,6 +42,11 @@ class UserResource extends Resource
                     ->label('Password')
                     ->password()
                     ->required(),
+                Select::make('role_id') // Gunakan Select untuk memilih role
+                    ->label('Role')
+                    ->options(Role::all()->pluck('name', 'id')) // Ambil semua role dari tabel roles
+                    ->required()
+                    ->native(false)
             ]);
     }
 
