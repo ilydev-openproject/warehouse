@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('id_rekening');
             $table->unsignedBigInteger('id_toko');
 
-            $table->decimal('saldo_awal', 15, 2);
+            $table->decimal('saldo_awal', 15, 2)->nullable();
             $table->decimal('saldo_di_tarik', 15, 2)->nullable()->default(0);
             $table->decimal('iklan', 15, 2)->nullable()->default(0);
             $table->decimal('omset', 15, 2)->nullable()->default(0);
