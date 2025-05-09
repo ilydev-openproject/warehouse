@@ -268,19 +268,19 @@ class OrderResource extends Resource
                     ->money('idr')
                     ->label('Omset Kotor')
                     ->sortable(),
-                TextInputColumn::make('net_amount')
-                    ->label('Omset Bersih')
-                    ->extraAttributes([
-                        'style' => 'width: 100px; min-width: 100px;',
-                    ])
-                    ->afterStateUpdated(function ($state, $record) {
-                        if (!empty($state)) {
-                            $record->update([
-                                'net_amount' => $state,
-                                'status' => 'shipped',
-                            ]);
-                        }
-                    }),
+                // TextInputColumn::make('net_amount')
+                //     ->label('Omset Bersih')
+                //     ->extraAttributes([
+                //         'style' => 'width: 100px; min-width: 100px;',
+                //     ])
+                //     ->afterStateUpdated(function ($state, $record) {
+                //         if (!empty($state)) {
+                //             $record->update([
+                //                 'net_amount' => $state,
+                //                 'status' => 'shipped',
+                //             ]);
+                //         }
+                //     }),
 
                 TextColumn::make('status')
                     ->color(fn(string $state): string => match ($state) {
