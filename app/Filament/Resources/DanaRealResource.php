@@ -10,6 +10,7 @@ use App\Models\DanaReal;
 use App\Models\Platform;
 use App\Models\Rekening;
 use Filament\Forms\Form;
+use Filament\Tables\Columns\TextInputColumn;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Filament\Forms\Components\Group;
@@ -158,14 +159,18 @@ class DanaRealResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('created_at')
-                    ->label('Tanggal Input')
-                    ->dateTime('d M Y')
+                TextColumn::make('minggu_ke')
+                    ->label('Minggu')
+                    ->sortable(),
+                TextColumn::make('tanggal')
+                    ->label('Tanggal')
+                    ->dateTime('M Y')
                     ->sortable(),
 
                 TextColumn::make('toko.name')
                     ->label('Nama Toko')
                     ->searchable()
+                    ->limit(12)
                     ->sortable(),
 
                 TextColumn::make('platform.name')
@@ -175,33 +180,43 @@ class DanaRealResource extends Resource
 
                 TextColumn::make('rekening.name')
                     ->label('Rekening')
+                    ->limit(10)
                     ->searchable(),
 
-                TextColumn::make('saldo_awal')
+                TextInputColumn::make('saldo_awal')
                     ->label('Saldo Awal')
-                    ->money('IDR', true)
-                    ->sortable(),
+                    ->sortable()
+                    ->extraAttributes([
+                        'style' => 'width: 140px; min-width: 100px;',
+                    ]),
 
-                TextColumn::make('saldo_di_tarik')
-                    ->label('Saldo di Tarik')
-                    ->money('IDR', true)
-                    ->sortable(),
+                TextInputColumn::make('saldo_di_tarik')
+                    ->label('di Tarik')
+                    ->sortable()
+                    ->extraAttributes([
+                        'style' => 'width: 140px; min-width: 100px;',
+                    ]),
 
-                TextColumn::make('sisa_saldo_formatted')
-                    ->label('Sisa Saldo')
+                TextInputColumn::make('sisa_saldo_formatted')
+                    ->label('Sisa')
                     ->sortable(false)
+                    ->disabled()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('iklan')
+                TextInputColumn::make('iklan')
                     ->label('Iklan')
-                    ->money('IDR', true)
                     ->sortable()
+                    ->extraAttributes([
+                        'style' => 'width: 140px; min-width: 100px;',
+                    ])
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                TextColumn::make('omset')
+                TextInputColumn::make('omset')
                     ->label('Omset')
-                    ->money('IDR', true)
                     ->sortable()
+                    ->extraAttributes([
+                        'style' => 'width: 140px; min-width: 100px;',
+                    ])
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('status')

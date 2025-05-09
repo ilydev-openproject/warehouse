@@ -23,7 +23,8 @@ class ListDanaReals extends ListRecords
         return [
             Actions\CreateAction::make(),
             Actions\Action::make('add_with_template')
-                ->label('Tambah dengan Template')
+                ->label('dengan Template')
+                ->color('warning')
                 ->form([
                     TextInput::make('minggu_ke')
                         ->label('Minggu ke')
