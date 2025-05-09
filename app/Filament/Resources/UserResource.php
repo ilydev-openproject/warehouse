@@ -41,12 +41,24 @@ class UserResource extends Resource
                 TextInput::make('password')
                     ->label('Password')
                     ->password()
-                    ->required(),
-                Select::make('role_id') // Gunakan Select untuk memilih role
+                    ->dehydrateStateUsing(fn($state) => filled($state) ? bcrypt($state) : null) // hanya hash kalau ada input
+                    ->dehydrated(fn($state) => filled($state)),
+                Select::make('role')
                     ->label('Role')
-                    ->options(Role::all()->pluck('name', 'id')) // Ambil semua role dari tabel roles
+                    ->options(Role::all()->pluck('name', 'name')) // nama sebagai key dan value
+                    ->searchable()
                     ->required()
-                    ->native(false)
+                    ->afterStateHydrated(function ($component, $state, $record) {
+                        if ($record) {
+                            $component->state($record->getRoleNames()->first());
+                        }
+                    })
+                    ->dehydrated()
+                    ->afterStateUpdated(function ($state, $set, $record) {
+                        if ($record) {
+                            $record->syncRoles([$state]); // pakai nama
+                        }
+                    }),
             ]);
     }
 
