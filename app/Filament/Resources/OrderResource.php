@@ -268,15 +268,20 @@ class OrderResource extends Resource
                     ->money('idr')
                     ->label('Omset Kotor')
                     ->sortable(),
-                // TextColumn::make('shipping_cost')
-                //     ->money('idr')
-                //     ->label('Biaya Kirim'),
                 TextInputColumn::make('net_amount')
                     ->label('Omset Bersih')
-                    ->disabled(fn($record) => $record->status !== 'shipped')
                     ->extraAttributes([
-                        'style' => 'width: 100px; min-width: 100px;', // atau '10%' jika pakai persentase
-                    ]),
+                        'style' => 'width: 100px; min-width: 100px;',
+                    ])
+                    ->afterStateUpdated(function ($state, $record) {
+                        if (!empty($state)) {
+                            $record->update([
+                                'net_amount' => $state,
+                                'status' => 'shipped',
+                            ]);
+                        }
+                    }),
+
                 TextColumn::make('status')
                     ->color(fn(string $state): string => match ($state) {
                         'returned' => 'gray',
