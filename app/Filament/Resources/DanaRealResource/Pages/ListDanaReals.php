@@ -70,7 +70,6 @@ class ListDanaReals extends ListRecords
                             'id_platform' => $item->id_platform,
                             'id_rekening' => $item->id_rekening,
                             'status' => 'audit',
-                            'template_id' => $data['template'],  // Pastikan Anda menyimpan ID template jika dibutuhkan
                         ]);
                     }
 
