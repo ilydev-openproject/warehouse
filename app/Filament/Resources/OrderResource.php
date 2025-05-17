@@ -260,9 +260,11 @@ class OrderResource extends Resource
                 TextColumn::make('resi')
                     ->searchable(),
                 TextColumn::make('customer_name')
-                    ->limit(10),
+                    ->limit(10)
+                    ->searchable(),
                 TextColumn::make('alamat')
-                    ->limit(12),
+                    ->limit(12)
+                    ->searchable(),
                 TextColumn::make('platform.name'),
                 TextColumn::make('gross_amount')
                     ->money('idr')
@@ -285,7 +287,8 @@ class OrderResource extends Resource
                                 'status' => 'process',
                             ]);
                         }
-                    }),
+                    })
+                    ->searchable(),
 
                 TextColumn::make('status')
                     ->color(fn(string $state): string => match ($state) {
@@ -311,38 +314,38 @@ class OrderResource extends Resource
                 TextColumn::make('kode_bigseller'),
             ])
             ->filters([
-                    Tables\Filters\TrashedFilter::make(),
+                Tables\Filters\TrashedFilter::make(),
 
-                    Tables\Filters\Filter::make('created_at')
-                        ->form([
-                                Forms\Components\DatePicker::make('mulai')
-                                    ->placeholder(fn($state): string => 'Dec 18, ' . now()->subYear()->format('Y')),
-                                Forms\Components\DatePicker::make('sampai')
-                                    ->placeholder(fn($state): string => now()->format('M d, Y')),
-                            ])
-                        ->query(function (Builder $query, array $data): Builder {
-                            return $query
-                                ->when(
-                                    $data['mulai'] ?? null,
-                                    fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
-                                )
-                                ->when(
-                                    $data['sampai'] ?? null,
-                                    fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
-                                );
-                        })
-                        ->indicateUsing(function (array $data): array {
-                            $indicators = [];
-                            if ($data['mulai'] ?? null) {
-                                $indicators['mulai'] = 'Order from ' . Carbon::parse($data['mulai'])->toFormattedDateString();
-                            }
-                            if ($data['sampai'] ?? null) {
-                                $indicators['sampai'] = 'Order until ' . Carbon::parse($data['sampai'])->toFormattedDateString();
-                            }
+                Tables\Filters\Filter::make('created_at')
+                    ->form([
+                        Forms\Components\DatePicker::make('mulai')
+                            ->placeholder(fn($state): string => 'Dec 18, ' . now()->subYear()->format('Y')),
+                        Forms\Components\DatePicker::make('sampai')
+                            ->placeholder(fn($state): string => now()->format('M d, Y')),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['mulai'] ?? null,
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                            )
+                            ->when(
+                                $data['sampai'] ?? null,
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if ($data['mulai'] ?? null) {
+                            $indicators['mulai'] = 'Order from ' . Carbon::parse($data['mulai'])->toFormattedDateString();
+                        }
+                        if ($data['sampai'] ?? null) {
+                            $indicators['sampai'] = 'Order until ' . Carbon::parse($data['sampai'])->toFormattedDateString();
+                        }
 
-                            return $indicators;
-                        }),
-                ])
+                        return $indicators;
+                    }),
+            ])
 
             ->actions([
                 ActionGroup::make([
@@ -403,90 +406,90 @@ class OrderResource extends Resource
                 ]),
             ])
             ->bulkActions([
-                    Tables\Actions\RestoreBulkAction::make()
-                        ->label('Restore Data')
-                        ->icon('heroicon-o-arrow-path')
-                        ->color('warning')
-                        ->action(function (Collection $records) {
-                            DB::transaction(function () use ($records) {
-                                foreach ($records as $record) {
-                                    // Mengembalikan pesanan dari soft deleted ke status aktif (restore ke tabel asli)
-                                    $record->restore();
+                Tables\Actions\RestoreBulkAction::make()
+                    ->label('Restore Data')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
+                    ->action(function (Collection $records) {
+                        DB::transaction(function () use ($records) {
+                            foreach ($records as $record) {
+                                // Mengembalikan pesanan dari soft deleted ke status aktif (restore ke tabel asli)
+                                $record->restore();
 
-                                    foreach ($record->order_items as $item) {
-                                        if ($item->fulfillment_type === 'warehouse') {
-                                            // Stok dikembalikan saat restore (menambah kembali stok yang telah dibatalkan)
-                                            WarehouseStock::where('id_product', $item->id_product)
-                                                ->where('id_gudang', $item->id_gudang)
-                                                ->decrement('quantity', $item->quantity); // Menambah stok
-                                        }
+                                foreach ($record->order_items as $item) {
+                                    if ($item->fulfillment_type === 'warehouse') {
+                                        // Stok dikembalikan saat restore (menambah kembali stok yang telah dibatalkan)
+                                        WarehouseStock::where('id_product', $item->id_product)
+                                            ->where('id_gudang', $item->id_gudang)
+                                            ->decrement('quantity', $item->quantity); // Menambah stok
                                     }
                                 }
-                            });
+                            }
+                        });
 
-                            Notification::make()
-                                ->success()
-                                ->title('Pesanan berhasil dipulihkan dan stok dikembalikan.')
-                                ->send();
-                        }),
+                        Notification::make()
+                            ->success()
+                            ->title('Pesanan berhasil dipulihkan dan stok dikembalikan.')
+                            ->send();
+                    }),
 
-                    BulkAction::make('hapus-pesanan')
-                        ->label('Buang ke Sampah')
-                        ->icon('heroicon-o-trash')
-                        ->requiresConfirmation()
-                        ->modalHeading('Buang ke Sampah')
-                        ->modalDescription('Orderan akan dipindahkan ke sampah, dan stok akan dikembalikan.')
-                        ->action(function (Collection $records) {
-                            DB::transaction(function () use ($records) {
-                                foreach ($records as $record) {
-                                    foreach ($record->order_items as $item) {
-                                        if ($item->fulfillment_type === 'warehouse') {
-                                            WarehouseStock::where('id_product', $item->id_product)
-                                                ->where('id_gudang', $item->id_gudang)
-                                                ->increment('quantity', $item->quantity);
-                                        }
-
-                                        $item->delete(); // langsung force delete
+                BulkAction::make('hapus-pesanan')
+                    ->label('Buang ke Sampah')
+                    ->icon('heroicon-o-trash')
+                    ->requiresConfirmation()
+                    ->modalHeading('Buang ke Sampah')
+                    ->modalDescription('Orderan akan dipindahkan ke sampah, dan stok akan dikembalikan.')
+                    ->action(function (Collection $records) {
+                        DB::transaction(function () use ($records) {
+                            foreach ($records as $record) {
+                                foreach ($record->order_items as $item) {
+                                    if ($item->fulfillment_type === 'warehouse') {
+                                        WarehouseStock::where('id_product', $item->id_product)
+                                            ->where('id_gudang', $item->id_gudang)
+                                            ->increment('quantity', $item->quantity);
                                     }
 
-                                    $record->delete(); // langsung force delete
+                                    $item->delete(); // langsung force delete
                                 }
-                            });
 
-                            Notification::make()
-                                ->success()
-                                ->title('Pesanan di buang ke sampah dan stok dikembalikan.')
-                                ->send();
-                        }),
+                                $record->delete(); // langsung force delete
+                            }
+                        });
 
-                    DeleteBulkAction::make()
-                        ->label('Hapus Permanen')
-                        ->requiresConfirmation()
-                        ->modalHeading('Hapus Permanen')
-                        ->modalDescription('Orderan akan dihapus secara permanen, dan stok akan dikembalikan.')
-                        ->action(function (Collection $records) {
-                            DB::transaction(function () use ($records) {
-                                foreach ($records as $record) {
-                                    foreach ($record->order_items as $item) {
-                                        if ($item->fulfillment_type === 'warehouse') {
-                                            WarehouseStock::where('id_product', $item->id_product)
-                                                ->where('id_gudang', $item->id_gudang)
-                                                ->increment('quantity', $item->quantity);
-                                        }
+                        Notification::make()
+                            ->success()
+                            ->title('Pesanan di buang ke sampah dan stok dikembalikan.')
+                            ->send();
+                    }),
 
-                                        $item->forceDelete(); // langsung force delete
+                DeleteBulkAction::make()
+                    ->label('Hapus Permanen')
+                    ->requiresConfirmation()
+                    ->modalHeading('Hapus Permanen')
+                    ->modalDescription('Orderan akan dihapus secara permanen, dan stok akan dikembalikan.')
+                    ->action(function (Collection $records) {
+                        DB::transaction(function () use ($records) {
+                            foreach ($records as $record) {
+                                foreach ($record->order_items as $item) {
+                                    if ($item->fulfillment_type === 'warehouse') {
+                                        WarehouseStock::where('id_product', $item->id_product)
+                                            ->where('id_gudang', $item->id_gudang)
+                                            ->increment('quantity', $item->quantity);
                                     }
 
-                                    $record->forceDelete(); // langsung force delete
+                                    $item->forceDelete(); // langsung force delete
                                 }
-                            });
 
-                            Notification::make()
-                                ->success()
-                                ->title('Pesanan berhasil dihapus permanen dan stok dikembalikan.')
-                                ->send();
-                        }),
-                ]);
+                                $record->forceDelete(); // langsung force delete
+                            }
+                        });
+
+                        Notification::make()
+                            ->success()
+                            ->title('Pesanan berhasil dihapus permanen dan stok dikembalikan.')
+                            ->send();
+                    }),
+            ]);
     }
 
     public static function getRelations(): array
@@ -509,8 +512,8 @@ class OrderResource extends Resource
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
-                    SoftDeletingScope::class,
-                ]);
+                SoftDeletingScope::class,
+            ]);
     }
 
 
@@ -518,33 +521,33 @@ class OrderResource extends Resource
     {
         return $infolist
             ->schema([
-                    RepeatableEntry::make('order_items')
-                        ->schema([
-                                // Kolom untuk setiap item produk
-                                TextEntry::make('product.name')
-                                    ->label('Nama Produk')
-                                    ->weight('bold'),
+                RepeatableEntry::make('order_items')
+                    ->schema([
+                        // Kolom untuk setiap item produk
+                        TextEntry::make('product.name')
+                            ->label('Nama Produk')
+                            ->weight('bold'),
 
-                                TextEntry::make('quantity')
-                                    ->label('Jumlah')
-                                    ->formatStateUsing(fn($state) => "{$state} pcs"),
-                                TextEntry::make('fulfillment_type')
-                                    ->label('Asal')
-                                    ->badge()
-                                    ->color(fn(string $state): string => match ($state) {
-                                        'warehouse' => 'info',
-                                        'dropship' => 'success',
-                                        default => 'gray',
-                                    })
-                                    ->formatStateUsing(fn(string $state): string => match ($state) {
-                                        'warehouse' => 'Gudang',
-                                        'dropship' => 'Dropship',
-                                    }),
-                                TextEntry::make('gudang.name')
-                            ])
-                        ->columnSpanFull()
-                        ->columns(4)
-                        ->grid(1)
-                ]);
+                        TextEntry::make('quantity')
+                            ->label('Jumlah')
+                            ->formatStateUsing(fn($state) => "{$state} pcs"),
+                        TextEntry::make('fulfillment_type')
+                            ->label('Asal')
+                            ->badge()
+                            ->color(fn(string $state): string => match ($state) {
+                                'warehouse' => 'info',
+                                'dropship' => 'success',
+                                default => 'gray',
+                            })
+                            ->formatStateUsing(fn(string $state): string => match ($state) {
+                                'warehouse' => 'Gudang',
+                                'dropship' => 'Dropship',
+                            }),
+                        TextEntry::make('gudang.name')
+                    ])
+                    ->columnSpanFull()
+                    ->columns(4)
+                    ->grid(1)
+            ]);
     }
 }
