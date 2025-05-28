@@ -31,6 +31,7 @@ class StockOutResource extends Resource
     protected static ?int $navigationSort = 1;
 
     protected static ?string $navigationLabel = 'Stok Keluar';
+
     public static function form(Form $form): Form
     {
         return $form
@@ -38,19 +39,19 @@ class StockOutResource extends Resource
                 //
             ]);
     }
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
             ->selectRaw('
-        MIN(order_items.id) as id,
-        DATE(order_items.created_at) as date,
-        id_gudang,
-        id_product,
-        SUM(quantity) as total_quantity,
-        COALESCE(products.hpp, 0) as hpp,
-        COALESCE(SUM(quantity) * products.hpp, 0) as total_hpp
-    ')
-
+                MIN(order_items.id) as id,
+                DATE(order_items.created_at) as date,
+                id_gudang,
+                id_product,
+                SUM(quantity) as total_quantity,
+                COALESCE(products.hpp, 0) as hpp,
+                COALESCE(SUM(quantity) * products.hpp, 0) as total_hpp
+            ')
             ->join('products', 'order_items.id_product', '=', 'products.id')
             ->groupBy('date', 'id_gudang', 'id_product', 'products.hpp', 'products.het')
             ->orderBy('date', 'desc');
@@ -58,24 +59,20 @@ class StockOutResource extends Resource
 
     public static function table(Table $table): Table
     {
-
         return $table
             ->columns([
-                TextColumn::make('date') // Ganti dari created_at ke date
+                TextColumn::make('date')
                     ->label('Tanggal')
                     ->date()
                     ->sortable(),
-
                 TextColumn::make('id_gudang')
                     ->label('Gudang')
                     ->formatStateUsing(fn($state) => Gudang::find($state)?->name ?? $state)
                     ->searchable(),
-
                 TextColumn::make('id_product')
                     ->label('Produk')
                     ->formatStateUsing(fn($state) => Product::find($state)?->name ?? $state)
                     ->searchable(),
-
                 TextColumn::make('total_quantity')
                     ->label('Jumlah Keluar')
                     ->numeric()
@@ -88,14 +85,12 @@ class StockOutResource extends Resource
                     ->money('idr'),
                 TextColumn::make('total_hpp')
                     ->label('Total HPP')
-                    ->money('idr') // atau pakai formatStateUsing kalau ingin custom
+                    ->money('idr')
                     ->summarize([
                         Tables\Columns\Summarizers\Sum::make()
                             ->label('Total HPP')
                             ->money('idr')
                     ]),
-
-
             ])
             ->filters([
                 Tables\Filters\Filter::make('created_at')
@@ -126,7 +121,24 @@ class StockOutResource extends Resource
                         if ($data['sampai'] ?? null) {
                             $indicators['sampai'] = 'Order until ' . Carbon::parse($data['sampai'])->toFormattedDateString();
                         }
-
+                        return $indicators;
+                    }),
+                Tables\Filters\SelectFilter::make('id_product')
+                    ->label('Produk')
+                    ->native(false)
+                    ->options(fn() => Product::pluck('name', 'id')->toArray())
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['value'] ?? null,
+                            fn(Builder $query, $productId): Builder => $query->where('id_product', $productId)
+                        );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if ($data['value'] ?? null) {
+                            $product = Product::find($data['value']);
+                            $indicators['id_product'] = 'Produk: ' . ($product->name ?? 'Unknown');
+                        }
                         return $indicators;
                     }),
             ])
