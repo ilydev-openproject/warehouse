@@ -5,19 +5,27 @@ namespace App\Filament\Resources;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Tables;
+use App\Models\Order;
 use App\Models\Gudang;
 use App\Models\Product;
 use App\Models\StockOut;
-use App\Models\Order;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Illuminate\Support\Facades\DB;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\Filter;
+use App\Filament\Widgets\StockOutChart;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\DatePicker;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Columns\Summarizers\Sum;
+use Filament\Tables\Actions\DeleteBulkAction;
+use App\Filament\Widgets\StockOutStatsOverview;
 use App\Filament\Resources\StockOutResource\Pages;
+use App\Filament\Widgets\TopSellingProductsStockOut;
+use App\Filament\Resources\StockOutResource\Pages\ListStockOuts;
 
 class StockOutResource extends Resource
 {
@@ -190,6 +198,15 @@ class StockOutResource extends Resource
     {
         return [
             // No relations managers for this report resource.
+        ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            StockOutStatsOverview::class,
+            StockOutChart::class,
+            // TopSellingProductsStockOut::class,
         ];
     }
 
