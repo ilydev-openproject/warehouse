@@ -34,7 +34,7 @@ class OmsetChart extends ChartWidget
             $labels[] = $date->translatedFormat('d M');
 
             $omset = Orders::whereDate('created_at', $date)
-                ->where('status', 'shipped')
+                ->where('status', 'proccess')
                 ->sum('gross_amount');
 
             $data[] = $omset;
