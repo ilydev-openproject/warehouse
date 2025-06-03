@@ -11,6 +11,7 @@ use Filament\Forms\Components\Select;
 use App\Filament\Widgets\CashOutChart;
 use Filament\Forms\Components\Section;
 use App\Filament\Widgets\StockOutChart;
+use Filament\Tables\Concerns\HasFilters;
 use Filament\Widgets\FilamentInfoWidget;
 use Filament\Forms\Components\DatePicker;
 use Filament\Pages\Dashboard as BaseDashboard;
@@ -22,7 +23,7 @@ use Filament\Pages\Dashboard\Concerns\HasFiltersForm as ConcernsHasFiltersForm;
 class Dashboard extends BaseDashboard
 {
 
-    use ConcernsHasFiltersForm;
+    use ConcernsHasFiltersForm, HasFilters;
 
     public function getWidgets(): array
     {
@@ -45,10 +46,19 @@ class Dashboard extends BaseDashboard
                 Section::make()
                     ->schema([
                         DatePicker::make('startDate')
+                            ->label('Dari Tanggal')
+                            // <<< Default ke awal hari ini (00:00:00)
+                            ->default(now()->startOfDay()->toDateString())
                             ->maxDate(fn(Get $get) => $get('endDate') ?: now())
                             ->native(false),
                         DatePicker::make('endDate')
+                            ->label('Sampai Tanggal')
+                            // <<< Default ke waktu sekarang (realtime)
+                            ->default(now()->toDateString()) // ToDateString() akan mengambil tanggal hari ini saja.
+                            // Untuk waktu realtime, DatePicker biasanya hanya menyimpan tanggal.
+                            // Pemfilteran waktu realtime akan ditangani di Widget.
                             ->minDate(fn(Get $get) => $get('startDate') ?: now())
+                            // MaxDate adalah 'now()' yang berarti hingga waktu sekarang.
                             ->maxDate(now())
                             ->native(false),
                     ])
